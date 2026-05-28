@@ -1,15 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OweMeApi.Data;
 using OweMeApi.Data.Entities;
-using OweMeApi.Dtos.Users;
-using OweMeApi.Services;
+using OweMeApi.Modules.Users.Dtos;
 
-namespace OweMeApi.Controllers
+namespace OweMeApi.Modules.Auth
 {
-    [Route("api/[controller]")]
+    [Route("api")]
     [ApiController]
-    public class UsersController(AppDbContext context, AuthService authService) : ControllerBase
+    public class AuthController(AppDbContext context, AuthService authService) : ControllerBase
     {
         private readonly AppDbContext _context = context;
         private readonly AuthService _authService = authService;
@@ -17,7 +16,7 @@ namespace OweMeApi.Controllers
         [HttpPost("sign-up")]
         public async Task<ActionResult<string>> SignUp(UserSignUpDTO request)
         {
-            if(await _context.Users.AnyAsync(u => u.Email == request.Email))
+            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
             {
                 return BadRequest("This email is already in use.");
             }
@@ -47,17 +46,15 @@ namespace OweMeApi.Controllers
                 return BadRequest("Wrong email or password");
 
             var token = _authService.CreateToken(user);
+
+            Response.Cookies.Append("AuthToken", token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = false, // DO ZMIANY
+                SameSite = SameSiteMode.Strict
+            });
+
             return Ok(token);
-        }
-
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
-        {
-            var users =  await _context.Users
-                .Select(u => new UserDTO(u.Id, u.Email, u.FullName))
-                .ToListAsync();
-
-            return Ok(users);
         }
     }
 }

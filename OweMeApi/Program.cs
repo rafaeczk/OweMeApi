@@ -4,7 +4,7 @@ using Scalar.AspNetCore;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using OweMeApi.Services;
+using OweMeApi.Modules.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,8 +31,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     ?? throw new InvalidOperationException("Jwt Key not found in the configuration");
                 return [new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))];
             },
-            ValidateIssuer = false, // in production set to true
-            ValidateAudience = false // in production set to true
+            ValidateIssuer = false, // DO ZMIANY
+            ValidateAudience = false // DO ZMIANY
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                context.Token = context.Request.Cookies["AuthToken"];
+                return Task.CompletedTask;
+            }
         };
     });
 

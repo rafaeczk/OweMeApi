@@ -3,6 +3,13 @@ using System.Text.Json.Serialization;
 
 namespace OweMeApi.Data.Entities;
 
+public enum UserRole
+{
+    User,
+    Admin,
+    Moderator
+}
+
 public class User
 {
     public Guid Id { get; set; }
