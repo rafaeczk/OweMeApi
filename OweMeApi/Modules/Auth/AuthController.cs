@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Data;
 using OweMeApi.Data.Entities;
@@ -47,7 +48,7 @@ namespace OweMeApi.Modules.Auth
 
             var token = _authService.CreateToken(user);
 
-            Response.Cookies.Append("AuthToken", token, new CookieOptions
+            Response.Cookies.Append(AuthService.CookieName, token, new CookieOptions
             {
                 HttpOnly = true,
                 Secure = false, // DO ZMIANY
@@ -55,6 +56,14 @@ namespace OweMeApi.Modules.Auth
             });
 
             return Ok(token);
+        }
+
+        [HttpDelete("log-out")]
+        [Authorize]
+        public async Task<ActionResult> LogOut()
+        {
+            Response.Cookies.Delete(AuthService.CookieName);
+            return Ok();
         }
     }
 }

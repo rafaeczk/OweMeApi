@@ -3,25 +3,30 @@ using OweMeApi.Data.Entities;
 
 namespace OweMeApi.Data
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
     {
-        // Konstruktor przekazujący opcje (np. connection string) do bazy
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-        {
-        }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<User>()
                 .Property(u => u.Id)
                 .HasDefaultValueSql("gen_random_uuid()");
+
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.Role)           
+                .WithMany()                    
+                .HasForeignKey(u => u.RoleCode)
+                .IsRequired();
+
+            modelBuilder.Entity<UserRole>().HasData(
+                new UserRole { Code = "ADMIN", Label = "Administrator" },
+                new UserRole { Code = "MODERATOR", Label = "Moderator" },
+                new UserRole { Code = "USER", Label = "Użytkownik" }
+            );
         }
 
-        // Deklaracja tabel (DbSet)
-        // Każda klasa modelu, którą chcesz mieć w bazie, musi być tutaj
         public DbSet<User> Users { get; set; }
-
-        // Jeśli będziesz miał inne tabele, dodajesz je analogicznie:
-        // public DbSet<Product> Products { get; set; }
+        public DbSet<UserRole> UserRoles { get; set; }
     }
 }
