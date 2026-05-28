@@ -15,20 +15,20 @@ namespace OweMeApi.Modules.Auth
         private readonly AuthService _authService = authService;
 
         [HttpPost("sign-up")]
-        public async Task<ActionResult<string>> SignUp(UserSignUpDTO request)
+        public async Task<ActionResult<string>> SignUp(UserSignUpDTO dto)
         {
-            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
+            if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
             {
                 return BadRequest("This email is already in use.");
             }
 
-            string hash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+            string hash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
             User user = new()
             {
                 Id = Guid.NewGuid(),
-                Email = request.Email,
-                FullName = request.FullName,
+                Email = dto.Email,
+                FullName = dto.FullName,
                 Hash = hash
             };
 
@@ -39,11 +39,11 @@ namespace OweMeApi.Modules.Auth
         }
 
         [HttpPost("sign-in")]
-        public async Task<ActionResult<string>> SignIn(UserSignInDTO request)
+        public async Task<ActionResult<string>> SignIn(UserSignInDTO dto)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
 
-            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Hash))
+            if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.Hash))
                 return BadRequest("Wrong email or password");
 
             var token = _authService.CreateToken(user);
@@ -63,7 +63,7 @@ namespace OweMeApi.Modules.Auth
         public async Task<ActionResult> LogOut()
         {
             Response.Cookies.Delete(AuthService.CookieName);
-            return Ok();
+            return NoContent();
         }
     }
 }

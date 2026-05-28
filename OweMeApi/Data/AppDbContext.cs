@@ -22,7 +22,8 @@ namespace OweMeApi.Data
             modelBuilder.Entity<UserRole>().HasData(
                 new UserRole { Code = "ADMIN", Label = "Administrator" },
                 new UserRole { Code = "MODERATOR", Label = "Moderator" },
-                new UserRole { Code = "USER", Label = "Użytkownik" }
+                new UserRole { Code = "USER", Label = "Użytkownik" },
+                new UserRole { Code = "LOCKED", Label = "Zablokowany" }
             );
         }
 

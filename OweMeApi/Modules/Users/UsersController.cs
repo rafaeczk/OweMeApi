@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Data;
 using OweMeApi.Modules.Users.Dtos;
-using OweMeApi.Modules.UserRoles;
 using System.Security.Claims;
 using OweMeApi.Modules.UserRoles.Dtos;
 
@@ -16,7 +15,7 @@ namespace OweMeApi.Modules.Users
         private readonly AppDbContext _context = context;
 
         [HttpGet("me")]
-        [Authorize]
+        [Authorize(Roles = "LOCKED,USER,MODERATOR,ADMIN")]
         public async Task<ActionResult<UserDTO>> GetMe()
         {
             var email = User.FindFirstValue(ClaimTypes.Name);
@@ -39,7 +38,7 @@ namespace OweMeApi.Modules.Users
         }
 
         [HttpGet]
-        //[Authorize(Roles = "ADMIN")]
+        [Authorize(Roles = "ADMIN,MODERATOR")]
         public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
         {
             var users =  await _context.Users
@@ -54,6 +53,57 @@ namespace OweMeApi.Modules.Users
                 .ToListAsync();
 
             return Ok(users);
+        }
+
+        [HttpPut("{userId}")]
+        [Authorize(Roles = "ADMIN,MODERATOR")]
+        public async Task<ActionResult<UserDTO>> EditUser(Guid userId, [FromBody] EditUserDTO dto)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                return NotFound("User not found");
+
+            if (!(await _context.UserRoles.AnyAsync(r => r.Code == dto.RoleCode)))
+                return BadRequest("Wrong RoleCode");
+
+            user.Email = dto.Email;
+            user.FullName = dto.Fullname;
+            user.RoleCode = dto.RoleCode;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Conflict("DB error");
+            }
+
+            return NoContent();
+        }
+
+        [HttpPut("{userId}/password")]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<ActionResult> ChangeUserPassword(Guid userId, [FromBody] ChangeUserPasswordDTO dto)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                return NotFound("User not found");
+
+            string hash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+
+            user.Hash = hash;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Conflict("DB error");
+            }
+
+            return NoContent();
         }
     }
 }
