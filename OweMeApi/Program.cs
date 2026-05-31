@@ -5,6 +5,8 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using OweMeApi.Modules.Auth;
+using OweMeApi.Modules.FriendCodes;
+using OweMeApi.Modules.Friends;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,6 +48,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<FriendCodesService>();
+builder.Services.AddScoped<FriendsService>();
 
 // BUILD
 

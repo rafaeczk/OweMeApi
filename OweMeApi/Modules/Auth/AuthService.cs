@@ -17,7 +17,8 @@ namespace OweMeApi.Modules.Auth
             var claims = new List<Claim> 
             {
                 new(ClaimTypes.Name, user.Email), 
-                new(ClaimTypes.Role, user.RoleCode) 
+                new(ClaimTypes.Role, user.RoleCode),
+                new(ClaimTypes.NameIdentifier, user.Id.ToString())
             };
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);

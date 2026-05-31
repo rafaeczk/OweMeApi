@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Data;
-using OweMeApi.Modules.Users.Dtos;
-using System.Security.Claims;
+using OweMeApi.Helpers;
 using OweMeApi.Modules.UserRoles.Dtos;
+using OweMeApi.Modules.Users.Dtos;
 
 namespace OweMeApi.Modules.Users
 {
@@ -18,20 +18,23 @@ namespace OweMeApi.Modules.Users
         [Authorize(Roles = "LOCKED,USER,MODERATOR,ADMIN")]
         public async Task<ActionResult<UserDTO>> GetMe()
         {
-            var email = User.FindFirstValue(ClaimTypes.Name);
+            var (userIdOk, userId) = AuthHelpers.GetUserId(User);
+
+            if (!userIdOk)
+                return BadRequest("Invalid token");
 
             var user = await _context.Users
                 .Include(u => u.Role)
-                .FirstOrDefaultAsync(u => u.Email == email);
+                .FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)
                 return NotFound("User not found");
 
             return Ok(
                 new UserDTO(
-                    user.Id, 
-                    user.Email, 
-                    user.FullName, 
+                    user.Id,
+                    user.Email,
+                    user.FullName,
                     new UserRoleDTO(user.RoleCode, user.Role?.Label)
                     )
                 );
@@ -41,15 +44,15 @@ namespace OweMeApi.Modules.Users
         [Authorize(Roles = "ADMIN,MODERATOR")]
         public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
         {
-            var users =  await _context.Users
-                .Select(u => 
+            var users = await _context.Users
+                .Select(u =>
                     new UserDTO(
-                        u.Id, 
-                        u.Email, 
-                        u.FullName, 
+                        u.Id,
+                        u.Email,
+                        u.FullName,
                         new UserRoleDTO(u.RoleCode, u.Role!.Label)
-                        )
                     )
+                )
                 .ToListAsync();
 
             return Ok(users);
