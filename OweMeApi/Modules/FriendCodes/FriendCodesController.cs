@@ -16,7 +16,7 @@ public class FriendCodesController(AppDbContext context, FriendCodesService frie
     private readonly FriendCodesService _friendCodesService = friendCodesService;
 
     [HttpGet("generate-code")]
-    [Authorize(Roles = "ADMIN,MODERATOR,USER")]
+    [Authorize(Policy = "All")]
     public async Task<ActionResult<FriendCodeDTO>> GenerateMyCode()
     {
         await _friendCodesService.DeleteExpiredCodes();

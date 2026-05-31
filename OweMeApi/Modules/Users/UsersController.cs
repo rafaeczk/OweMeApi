@@ -15,7 +15,7 @@ namespace OweMeApi.Modules.Users
         private readonly AppDbContext _context = context;
 
         [HttpGet("me")]
-        [Authorize(Roles = "LOCKED,USER,MODERATOR,ADMIN")]
+        [Authorize]
         public async Task<ActionResult<UserDTO>> GetMe()
         {
             var (userIdOk, userId) = AuthHelpers.GetUserId(User);
@@ -41,7 +41,7 @@ namespace OweMeApi.Modules.Users
         }
 
         [HttpGet]
-        [Authorize(Roles = "ADMIN,MODERATOR")]
+        [Authorize(Policy = "AdminOrModerator")]
         public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
         {
             var users = await _context.Users
@@ -59,7 +59,7 @@ namespace OweMeApi.Modules.Users
         }
 
         [HttpPut("{userId}")]
-        [Authorize(Roles = "ADMIN,MODERATOR")]
+        [Authorize(Policy = "AdminOrModerator")]
         public async Task<ActionResult<UserDTO>> EditUser(Guid userId, [FromBody] EditUserDTO dto)
         {
             var user = await _context.Users.FindAsync(userId);
@@ -86,7 +86,7 @@ namespace OweMeApi.Modules.Users
         }
 
         [HttpPut("{userId}/password")]
-        [Authorize(Roles = "ADMIN")]
+        [Authorize(Policy = "Admin")]
         public async Task<ActionResult> ChangeUserPassword(Guid userId, [FromBody] ChangeUserPasswordDTO dto)
         {
             var user = await _context.Users.FindAsync(userId);

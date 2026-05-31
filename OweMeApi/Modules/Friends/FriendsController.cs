@@ -14,7 +14,7 @@ namespace OweMeApi.Modules.Friends
         private readonly AppDbContext _context = context;
         private readonly FriendsService _friendsService = friendsService;
 
-        [Authorize(Roles = "ADMIN,MODERATOR,USER")]
+        [Authorize(Policy = "All")]
         [HttpGet("list")]
         public async Task<ActionResult<List<FriendListItemDTO>>> GetFriendsList()
         {
@@ -34,7 +34,7 @@ namespace OweMeApi.Modules.Friends
                 .ToListAsync();
         }
 
-        [Authorize(Roles = "ADMIN,MODERATOR,USER")]
+        [Authorize(Policy = "All")]
         [HttpGet("requests")]
         public async Task<ActionResult<List<FriendRequestDTO>>> GetFriendRequestsList()
         {
@@ -54,7 +54,7 @@ namespace OweMeApi.Modules.Friends
                 .ToListAsync();
         }
 
-        [Authorize(Roles = "ADMIN,MODERATOR,USER")]
+        [Authorize(Policy = "All")]
         [HttpPost("accept-request")]
         public async Task<ActionResult<AddFriendResponseDTO>> AcceptFriendRequest([FromBody] FriendRequestActionDTO dto)
         {
@@ -83,8 +83,8 @@ namespace OweMeApi.Modules.Friends
             return Ok(new AddFriendResponseDTO(dto.UserId.ToString()));
         }
 
-        [Authorize(Roles = "ADMIN,MODERATOR,USER")]
-        [HttpPost("decline-request")]
+        [Authorize(Policy = "All")]
+        [HttpDelete("decline-request")]
         public async Task<ActionResult> DeclineFriendRequest([FromBody] FriendRequestActionDTO dto)
         {
             var (userIdOk, userId) = AuthHelpers.GetUserId(User);
@@ -103,7 +103,7 @@ namespace OweMeApi.Modules.Friends
             return NoContent();
         }
 
-        [Authorize(Roles = "ADMIN,MODERATOR,USER")]
+        [Authorize(Policy = "All")]
         [HttpPost("add-friend-by-code")]
         public async Task<ActionResult<AddFriendResponseDTO>> AddFriendByCode(AddFriendByCodeDTO dto)
         {
@@ -125,7 +125,7 @@ namespace OweMeApi.Modules.Friends
             return Ok(new AddFriendResponseDTO(friendCode.UserId.ToString()));
         }
 
-        [Authorize(Roles = "ADMIN,MODERATOR,USER")]
+        [Authorize(Policy = "All")]
         [HttpPost("request-friend-by-user-id")]
         public async Task<ActionResult<AddFriendResponseDTO>> RequestFriendByUserId(RequestFriendByUserIdDTO dto)
         {

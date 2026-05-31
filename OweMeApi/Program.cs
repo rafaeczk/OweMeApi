@@ -1,12 +1,13 @@
-using Microsoft.EntityFrameworkCore;
-using OweMeApi.Data;
-using Scalar.AspNetCore;
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using OweMeApi.Data;
+using OweMeApi.Extensions;
 using OweMeApi.Modules.Auth;
 using OweMeApi.Modules.FriendCodes;
 using OweMeApi.Modules.Friends;
+using Scalar.AspNetCore;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,6 +51,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<FriendCodesService>();
 builder.Services.AddScoped<FriendsService>();
+
+builder.Services.AddCustomAuthorization();
 
 // BUILD
 
