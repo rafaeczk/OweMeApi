@@ -58,6 +58,14 @@ builder.Services.AddCustomAuthorization();
 
 var app = builder.Build();
 
+// MOCK IF DEV
+
+if (!app.Environment.IsProduction())
+{
+    using var scope = app.Services.CreateScope();
+    await Mock.Init(scope.ServiceProvider, app.Environment);
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
