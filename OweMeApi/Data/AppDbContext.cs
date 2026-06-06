@@ -9,6 +9,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<FriendCode> FriendCodes => Set<FriendCode>();
     public DbSet<Friendship> Friendships => Set<Friendship>();
+    public DbSet<Debt> Debts => Set<Debt>();
+    public DbSet<LedgerEntry> LedgerEntries => Set<LedgerEntry>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -18,6 +20,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         ConfigureUserRole(modelBuilder);
         ConfigureFriendCode(modelBuilder);
         ConfigureFriendship(modelBuilder);
+        ConfigureDebt(modelBuilder);
+        ConfigurateLedgerEntry(modelBuilder);
     }
 
     private static void ConfigureUser(ModelBuilder modelBuilder)
@@ -79,6 +83,51 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 .WithMany()
                 .HasForeignKey(f => f.FriendId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+
+    private static void ConfigureDebt(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Debt>(entity =>
+        {
+            entity.HasOne(d => d.Creditor)
+                .WithMany()
+                .HasForeignKey(d => d.CreditorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(d => d.Debtor)
+                .WithMany()
+                .HasForeignKey(d => d.DebtorId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+
+    private static void ConfigurateLedgerEntry(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<LedgerEntry>(entity =>
+        {
+            entity.Property(e => e.TransactionType)
+                .HasConversion<string>();
+
+            entity.Property(e => e.PaymentStatus)
+                .HasConversion<string>();
+
+            entity.Property(e => e.PaymentMethod)
+                .HasConversion<string>();
+
+            entity.HasOne(e => e.Debt)
+                .WithMany()
+                .HasForeignKey(e => e.DebtId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.CreatedBy)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(e => e.InternalReference)
+                .IsUnique();
+
         });
     }
 }

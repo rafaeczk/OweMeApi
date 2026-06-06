@@ -4,10 +4,13 @@ using Microsoft.IdentityModel.Tokens;
 using OweMeApi.Data;
 using OweMeApi.Extensions;
 using OweMeApi.Modules.Auth;
+using OweMeApi.Modules.Debts;
 using OweMeApi.Modules.FriendCodes;
 using OweMeApi.Modules.Friends;
+using OweMeApi.Modules.LedgerEntries;
 using Scalar.AspNetCore;
 using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,9 +51,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<FriendCodesService>();
 builder.Services.AddScoped<FriendsService>();
+builder.Services.AddScoped<DebtsService>();
+builder.Services.AddScoped<LedgerEntriesService>();
 
 builder.Services.AddCustomAuthorization();
 

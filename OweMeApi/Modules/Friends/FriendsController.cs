@@ -55,7 +55,7 @@ namespace OweMeApi.Modules.Friends
         }
 
         [Authorize(Policy = "All")]
-        [HttpPost("accept-request")]
+        [HttpPatch("accept-request")]
         public async Task<ActionResult<AddFriendResponseDTO>> AcceptFriendRequest([FromBody] FriendRequestActionDTO dto)
         {
             var (userIdOk, userId) = AuthHelpers.GetUserId(User);
