@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Data;
-using OweMeApi.Helpers;
+using OweMeApi.Extensions;
 using OweMeApi.Modules.Friends.Dtos;
 
 namespace OweMeApi.Modules.Friends
@@ -18,10 +18,7 @@ namespace OweMeApi.Modules.Friends
         [HttpGet("list")]
         public async Task<ActionResult<List<FriendListItemDTO>>> GetFriendsList()
         {
-            var (userIdOk, userId) = AuthHelpers.GetUserId(User);
-
-            if (!userIdOk)
-                return BadRequest("Invalid token");
+            var userId = User.GetUserId();
 
             return await _context.Friendships
                 .Where(fs => (userId == fs.UserId || userId == fs.FriendId) && fs.IsAccepted)
@@ -38,10 +35,7 @@ namespace OweMeApi.Modules.Friends
         [HttpGet("requests")]
         public async Task<ActionResult<List<FriendRequestDTO>>> GetFriendRequestsList()
         {
-            var (userIdOk, userId) = AuthHelpers.GetUserId(User);
-
-            if (!userIdOk)
-                return BadRequest("Invalid token");
+            var userId = User.GetUserId();
 
             return await _context.Friendships
                 .Where(fs => fs.FriendId == userId && !fs.IsAccepted)
@@ -58,10 +52,7 @@ namespace OweMeApi.Modules.Friends
         [HttpPatch("accept-request")]
         public async Task<ActionResult<AddFriendResponseDTO>> AcceptFriendRequest([FromBody] FriendRequestActionDTO dto)
         {
-            var (userIdOk, userId) = AuthHelpers.GetUserId(User);
-
-            if (!userIdOk)
-                return BadRequest("Invalid token");
+            var userId = User.GetUserId();
 
             var friendship = await _context.Friendships.FirstOrDefaultAsync(fs => fs.UserId == dto.UserId && fs.FriendId == userId);
 
@@ -87,10 +78,7 @@ namespace OweMeApi.Modules.Friends
         [HttpDelete("decline-request")]
         public async Task<ActionResult> DeclineFriendRequest([FromBody] FriendRequestActionDTO dto)
         {
-            var (userIdOk, userId) = AuthHelpers.GetUserId(User);
-
-            if (!userIdOk)
-                return BadRequest("Invalid token");
+            var userId = User.GetUserId();
 
             var friendship = await _context.Friendships.FirstOrDefaultAsync(fs => fs.UserId == dto.UserId && fs.FriendId == userId && !fs.IsAccepted);
 
@@ -107,10 +95,7 @@ namespace OweMeApi.Modules.Friends
         [HttpPost("add-friend-by-code")]
         public async Task<ActionResult<AddFriendResponseDTO>> AddFriendByCode(AddFriendByCodeDTO dto)
         {
-            var (userIdOk, userId) = AuthHelpers.GetUserId(User);
-
-            if (!userIdOk)
-                return BadRequest("Invalid token");
+            var userId = User.GetUserId();
 
             var friendCode = await _context.FriendCodes.FirstOrDefaultAsync(c => c.Code == dto.Code);
 
@@ -129,10 +114,7 @@ namespace OweMeApi.Modules.Friends
         [HttpPost("request-friend-by-user-id")]
         public async Task<ActionResult<AddFriendResponseDTO>> RequestFriendByUserId(RequestFriendByUserIdDTO dto)
         {
-            var (userIdOk, userId) = AuthHelpers.GetUserId(User);
-
-            if (!userIdOk)
-                return BadRequest("Invalid token");
+            var userId = User.GetUserId();
 
             bool friendIdOk = Guid.TryParse(dto.FriendId, out Guid friendId);
 

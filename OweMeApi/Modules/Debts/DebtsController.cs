@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Data;
 using OweMeApi.Data.Entities;
-using OweMeApi.Helpers;
+using OweMeApi.Extensions;
 using OweMeApi.Modules.Debts.Dtos;
 using System.ComponentModel.DataAnnotations;
 
@@ -20,10 +20,7 @@ public class DebtsController(AppDbContext context, DebtsService debtsService) : 
     [Authorize(Policy = "All")]
     public async Task<ActionResult<List<DebtInformationDTO>>> GetDebts([FromQuery, AllowedValues("creditor", "debtor", "any")] string role = "any")
     {
-        var (userIdOk, userId) = AuthHelpers.GetUserId(User);
-
-        if (!userIdOk)
-            return BadRequest("Invalid token");
+        var userId = User.GetUserId();
 
         IQueryable<Debt> debtsQuery = _context.Debts;
 
@@ -64,10 +61,7 @@ public class DebtsController(AppDbContext context, DebtsService debtsService) : 
     [Authorize(Policy = "All")]
     public async Task<ActionResult<DebtInformationDTO>> GetDebt(Guid debtId)
     {
-        var (userIdOk, userId) = AuthHelpers.GetUserId(User);
-
-        if (!userIdOk)
-            return BadRequest("Invalid token");
+        var userId = User.GetUserId();
 
         var debt = await _context.Debts.FirstOrDefaultAsync(d => d.Id == debtId && (d.CreditorId == userId || d.DebtorId == userId));
 
@@ -97,10 +91,7 @@ public class DebtsController(AppDbContext context, DebtsService debtsService) : 
     [Authorize(Policy = "User")]
     public async Task<ActionResult<string>> CreateDebt([FromBody] CreateDebtDTO dto)
     {
-        var (userIdOk, userId) = AuthHelpers.GetUserId(User);
-
-        if (!userIdOk)
-            return BadRequest("Invalid token");
+        var userId = User.GetUserId();
 
         Debt debt = new()
         {
@@ -138,10 +129,7 @@ public class DebtsController(AppDbContext context, DebtsService debtsService) : 
     [Authorize(Policy = "User")]
     public async Task<ActionResult> ChangeDebtApprovement(Guid debtId, [FromBody] ChangeDebtApprovementDTO dto)
     {
-        var (userIdOk, userId) = AuthHelpers.GetUserId(User);
-
-        if (!userIdOk)
-            return BadRequest("Invalid token");
+        var userId = User.GetUserId();
 
         var debt = await _context.Debts.FirstOrDefaultAsync(d => d.Id == debtId);
 

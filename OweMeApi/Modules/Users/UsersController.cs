@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Data;
-using OweMeApi.Helpers;
+using OweMeApi.Extensions;
 using OweMeApi.Modules.UserRoles.Dtos;
 using OweMeApi.Modules.Users.Dtos;
 
@@ -18,10 +18,7 @@ namespace OweMeApi.Modules.Users
         [Authorize]
         public async Task<ActionResult<UserDTO>> GetMe()
         {
-            var (userIdOk, userId) = AuthHelpers.GetUserId(User);
-
-            if (!userIdOk)
-                return BadRequest("Invalid token");
+            var userId = User.GetUserId();
 
             var user = await _context.Users
                 .Include(u => u.Role)
@@ -30,14 +27,12 @@ namespace OweMeApi.Modules.Users
             if (user == null)
                 return NotFound("User not found");
 
-            return Ok(
-                new UserDTO(
-                    user.Id,
-                    user.Email,
-                    user.FullName,
-                    new UserRoleDTO(user.RoleCode, user.Role?.Label)
-                    )
-                );
+            return Ok(new UserDTO(
+                user.Id,
+                user.Email,
+                user.FullName,
+                new UserRoleDTO(user.RoleCode, user.Role?.Label)
+            ));
         }
 
         [HttpGet]

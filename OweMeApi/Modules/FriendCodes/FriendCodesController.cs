@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using OweMeApi.Data;
 using OweMeApi.Data.Entities;
-using OweMeApi.Helpers;
+using OweMeApi.Extensions;
 using OweMeApi.Modules.FriendCodes.Dtos;
 
 namespace OweMeApi.Modules.FriendCodes;
@@ -21,20 +20,12 @@ public class FriendCodesController(AppDbContext context, FriendCodesService frie
     {
         await _friendCodesService.DeleteExpiredCodes();
 
-        var (userIdOk, userId) = AuthHelpers.GetUserId(User);
-
-        if (!userIdOk)
-            return BadRequest("Invalid token");
-
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-
-        if (user == null)
-            return NotFound("User not found");
+        var userId = User.GetUserId();
 
         var friendCode = new FriendCode()
         {
-            UserId = user.Id,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(3),
+            UserId = userId,
+            ExpiresAt = DateTime.UtcNow.AddHours(12),
             Code = _friendCodesService.GenerateFriendCode()
         };
 
