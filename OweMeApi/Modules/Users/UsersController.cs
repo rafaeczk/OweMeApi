@@ -1,56 +1,38 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Data;
 using OweMeApi.Extensions;
-using OweMeApi.Modules.UserRoles.Dtos;
 using OweMeApi.Modules.Users.Dtos;
+using OweMeApi.Modules.Users.Features.GetMe;
+using OweMeApi.Modules.Users.Features.GetUsers;
 
 namespace OweMeApi.Modules.Users
 {
     [Route("api/users")]
     [ApiController]
-    public class UsersController(AppDbContext context) : ControllerBase
+    public class UsersController(AppDbContext context, IMediator mediator) : ControllerBase
     {
         private readonly AppDbContext _context = context;
+        private readonly IMediator _mediator = mediator;
 
         [HttpGet("me")]
         [Authorize]
         public async Task<ActionResult<UserDTO>> GetMe()
         {
-            var userId = User.GetUserId();
+            var result = await _mediator.Send(new GetMeQuery(User.GetUserId()));
 
-            var user = await _context.Users
-                .Include(u => u.Role)
-                .FirstOrDefaultAsync(u => u.Id == userId);
-
-            if (user == null)
-                return NotFound("User not found");
-
-            return Ok(new UserDTO(
-                user.Id,
-                user.Email,
-                user.FullName,
-                new UserRoleDTO(user.RoleCode, user.Role?.Label)
-            ));
+            return result.ToActionResult();
         }
 
         [HttpGet]
         [Authorize(Policy = "AdminOrModerator")]
-        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
+        public async Task<ActionResult<List<UserDTO>>> GetUsers()
         {
-            var users = await _context.Users
-                .Select(u =>
-                    new UserDTO(
-                        u.Id,
-                        u.Email,
-                        u.FullName,
-                        new UserRoleDTO(u.RoleCode, u.Role!.Label)
-                    )
-                )
-                .ToListAsync();
+            var result = await _mediator.Send(new GetUsersQuery());
 
-            return Ok(users);
+            return result.ToActionResult();
         }
 
         [HttpPut("{userId}")]

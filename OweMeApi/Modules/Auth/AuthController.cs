@@ -1,61 +1,46 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OweMeApi.Data;
-using OweMeApi.Data.Entities;
-using OweMeApi.Modules.Users.Dtos;
+using OweMeApi.Modules.Auth.Dtos;
+using OweMeApi.Modules.Auth.Features.SignIn;
+using OweMeApi.Modules.Auth.Features.SignUp;
 
 namespace OweMeApi.Modules.Auth
 {
     [Route("api")]
     [ApiController]
-    public class AuthController(AppDbContext context, AuthService authService) : ControllerBase
+    public class AuthController(IMediator mediator) : ControllerBase
     {
-        private readonly AppDbContext _context = context;
-        private readonly AuthService _authService = authService;
+        private readonly IMediator _mediator = mediator;
 
         [HttpPost("sign-up")]
-        public async Task<ActionResult<string>> SignUp(UserSignUpDTO dto)
+        public async Task<ActionResult<SignUpResponseDTO>> SignUp(SignUpDTO dto)
         {
-            if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
-            {
-                return BadRequest("This email is already in use.");
-            }
+            var result = await _mediator.Send(new SignUpCommand(dto.Email, dto.FullName, dto.Password));
 
-            string hash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-
-            User user = new()
-            {
-                Id = Guid.NewGuid(),
-                Email = dto.Email,
-                FullName = dto.FullName,
-                Hash = hash
-            };
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            return Ok(user.Id);
+            return result.ToActionResult();
         }
 
         [HttpPost("sign-in")]
-        public async Task<ActionResult<string>> SignIn(UserSignInDTO dto)
+        public async Task<ActionResult<string>> SignIn(SignInDTO dto)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+            var result = await _mediator.Send(new SignInCommand(dto.Email, dto.Password));
 
-            if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.Hash))
-                return BadRequest("Wrong email or password");
+            var token = result.Value;
 
-            var token = _authService.CreateToken(user);
-
-            Response.Cookies.Append(AuthService.CookieName, token, new CookieOptions
+            if (result.IsSuccess && !string.IsNullOrEmpty(token))
             {
-                HttpOnly = true,
-                Secure = false, // DO ZMIANY
-                SameSite = SameSiteMode.Strict
-            });
+                Response.Cookies.Append(AuthService.CookieName, token, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = false, // TODO: do zmiany
+                    SameSite = SameSiteMode.Strict
+                });
 
-            return Ok(token);
+                return Ok(token);
+            }
+
+            return result.ToActionResult();
         }
 
         [HttpDelete("log-out")]
