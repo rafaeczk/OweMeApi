@@ -25,7 +25,7 @@ namespace OweMeApi.Modules.Friends
         [HttpGet("list")]
         public async Task<ActionResult<List<FriendListItemDTO>>> GetFriendsList()
         {
-            var result = await _mediator.Send(new GetFriendsListQuery(User.GetUserId()))l
+            var result = await _mediator.Send(new GetFriendsListQuery(User.GetUserId()));
 
             return result.ToActionResult();
         }
