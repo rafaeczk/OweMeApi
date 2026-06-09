@@ -3,4 +3,4 @@ using OweMeApi.Common;
 
 namespace OweMeApi.Modules.Friends.Features.AcceptFriendRequest;
 
-public record AcceptFriendRequestCommand(Guid UserId, Guid FriendId) : IRequest<Result>;
+public record AcceptFriendRequestCommand(Guid UserId, Guid FriendId) : IRequest<HandlerResult>;

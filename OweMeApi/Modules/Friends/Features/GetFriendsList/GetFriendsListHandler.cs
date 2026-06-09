@@ -7,9 +7,9 @@ using OweMeApi.Modules.Friends.Dtos;
 namespace OweMeApi.Modules.Friends.Features.GetFriendsList;
 
 public class GetFriendsListHandler(AppDbContext context)
-    : IRequestHandler<GetFriendsListQuery, Result<List<FriendListItemDTO>>>
+    : IRequestHandler<GetFriendsListQuery, HandlerResult<List<FriendListItemDTO>>>
 {
-    public async Task<Result<List<FriendListItemDTO>>> Handle(GetFriendsListQuery request, CancellationToken ct)
+    public async Task<HandlerResult<List<FriendListItemDTO>>> Handle(GetFriendsListQuery request, CancellationToken ct)
     {
         return await context.Friendships
             .Where(fs => (request.UserId == fs.UserId || request.UserId == fs.FriendId) && fs.IsAccepted)

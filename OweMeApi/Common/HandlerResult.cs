@@ -2,28 +2,28 @@
 
 namespace OweMeApi.Common;
 
-public enum ErrorCode { None, NotFound, BadRequest, Conflict, Unauthorized }
+public enum ErrorCode { None, NotFound, BadRequest, Conflict, Unauthorized, InternalError }
 
-public class Result
+public class HandlerResult
 {
     public bool IsSuccess { get; }
     public string? Error { get; }
     public ErrorCode ErrorCode { get; }
 
-    protected Result(bool isSuccess, string? error, ErrorCode errorCode)
+    protected HandlerResult(bool isSuccess, string? error, ErrorCode errorCode)
     {
         IsSuccess = isSuccess;
         Error = error;
         ErrorCode = errorCode;
     }
 
-    public static implicit operator Result(FailureResult failure)
+    public static implicit operator HandlerResult(HandlerFailureResult failure)
     {
         return new(false, failure.Error, failure.ErrorCode);
     }
 
-    public static Result Success() => new(true, null, ErrorCode.None);
-    public static FailureResult Failure(string error, ErrorCode errorCode) => new(error, errorCode);
+    public static HandlerResult Success() => new(true, null, ErrorCode.None);
+    public static HandlerFailureResult Failure(string error, ErrorCode errorCode) => new(error, errorCode);
 
     protected ActionResult CreateActionResult(object? value)
     {
@@ -42,29 +42,29 @@ public class Result
     public virtual ActionResult ToActionResult() => CreateActionResult(null);
 }
 
-public class Result<T> : Result
+public class HandlerResult<T> : HandlerResult
 {
     public T? Value { get; }
 
-    private Result(T value) : base(true, null, ErrorCode.None) => Value = value;
-    private Result(string error, ErrorCode errorCode) : base(false, error, errorCode) => Value = default;
+    private HandlerResult(T value) : base(true, null, ErrorCode.None) => Value = value;
+    private HandlerResult(string error, ErrorCode errorCode) : base(false, error, errorCode) => Value = default;
 
-    public static implicit operator Result<T>(FailureResult failure)
+    public static implicit operator HandlerResult<T>(HandlerFailureResult failure)
     {
         return new(failure.Error, failure.ErrorCode);
     }
 
-    public static implicit operator Result<T>(T value)
+    public static implicit operator HandlerResult<T>(T value)
     {
         return new(value);
     }
 
-    public static Result<T> Success(T value) => new(value);
+    public static HandlerResult<T> Success(T value) => new(value);
 
     public override ActionResult ToActionResult() => CreateActionResult(Value);
 }
 
-public class FailureResult(string error, ErrorCode errorCode)
+public class HandlerFailureResult(string error, ErrorCode errorCode)
 {
     public string Error { get; } = error;
     public ErrorCode ErrorCode { get; } = errorCode;

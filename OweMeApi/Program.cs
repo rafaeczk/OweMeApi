@@ -7,7 +7,6 @@ using OweMeApi.Modules.Auth;
 using OweMeApi.Modules.Debts;
 using OweMeApi.Modules.FriendCodes;
 using OweMeApi.Modules.Friends;
-using OweMeApi.Modules.LedgerEntries;
 using Scalar.AspNetCore;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -63,7 +62,6 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<FriendCodesService>();
 builder.Services.AddScoped<FriendsService>();
 builder.Services.AddScoped<DebtsService>();
-builder.Services.AddScoped<LedgerEntriesService>();
 
 builder.Services.AddCustomAuthorization();
 

@@ -7,9 +7,9 @@ using OweMeApi.Modules.Users.Dtos;
 
 namespace OweMeApi.Modules.Users.Features.GetUsers;
 
-public class GetUsersHandler(AppDbContext context) : IRequestHandler<GetUsersQuery, Result<List<UserDTO>>>
+public class GetUsersHandler(AppDbContext context) : IRequestHandler<GetUsersQuery, HandlerResult<List<UserDTO>>>
 {
-    public async Task<Result<List<UserDTO>>> Handle(GetUsersQuery request, CancellationToken ct)
+    public async Task<HandlerResult<List<UserDTO>>> Handle(GetUsersQuery request, CancellationToken ct)
     {
         var users = await context.Users
             .Include(u => u.Role)

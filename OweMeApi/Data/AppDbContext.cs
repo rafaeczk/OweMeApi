@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OweMeApi.Data.Entities;
+using OweMeApi.Data.Entities.Ledger;
 
 namespace OweMeApi.Data;
 
@@ -9,8 +10,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<FriendCode> FriendCodes => Set<FriendCode>();
     public DbSet<Friendship> Friendships => Set<Friendship>();
+
+    // ---
     public DbSet<Debt> Debts => Set<Debt>();
-    public DbSet<LedgerEntry> LedgerEntries => Set<LedgerEntry>();
+    public DbSet<LedgerEvent> LedgerEvents => Set<LedgerEvent>();
+    public DbSet<DebtAdjustment> DebtAdjustments => Set<DebtAdjustment>();
+    public DbSet<DebtPayment> DebtPayments => Set<DebtPayment>();
+    public DbSet<DebtPaymentStatusChange> DebtPaymentStatusChanges => Set<DebtPaymentStatusChange>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -20,8 +26,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         ConfigureUserRole(modelBuilder);
         ConfigureFriendCode(modelBuilder);
         ConfigureFriendship(modelBuilder);
-        ConfigureDebt(modelBuilder);
-        ConfigurateLedgerEntry(modelBuilder);
+        ConfigureLedgerEvent(modelBuilder);
+        ConfigureDebtPayment(modelBuilder);
+        ConfigureDebtPaymentStatusChange(modelBuilder);
+        ConfigureDebtAdjustment(modelBuilder);
     }
 
     private static void ConfigureUser(ModelBuilder modelBuilder)
@@ -86,48 +94,76 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         });
     }
 
-    private static void ConfigureDebt(ModelBuilder modelBuilder)
+    private static void ConfigureLedgerEvent(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Debt>(entity =>
+        modelBuilder.Entity<LedgerEvent>(entity =>
         {
-            entity.HasOne(d => d.Creditor)
-                .WithMany()
-                .HasForeignKey(d => d.CreditorId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasOne(d => d.Debtor)
-                .WithMany()
-                .HasForeignKey(d => d.DebtorId)
-                .OnDelete(DeleteBehavior.Restrict);
-        });
-    }
-
-    private static void ConfigurateLedgerEntry(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<LedgerEntry>(entity =>
-        {
-            entity.Property(e => e.TransactionType)
+            entity.Property(e => e.EventType)
                 .HasConversion<string>();
-
-            entity.Property(e => e.PaymentStatus)
-                .HasConversion<string>();
-
-            entity.Property(e => e.PaymentMethod)
-                .HasConversion<string>();
-
-            entity.HasOne(e => e.Debt)
-                .WithMany()
-                .HasForeignKey(e => e.DebtId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasOne(e => e.CreatedBy)
-                .WithMany()
-                .HasForeignKey(e => e.CreatedByUserId)
-                .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(e => e.InternalReference)
                 .IsUnique();
 
+            entity.HasOne(e => e.Debt)
+                .WithMany(d => d.LedgerEvents)
+                .HasForeignKey(e => e.DebtId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Actor)
+                .WithMany()
+                .HasForeignKey(e => e.ActorId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
+            // DETAILS
+
+            entity.HasOne(e => e.Adjustment)
+                .WithOne(a => a.LedgerEvent)
+                .HasForeignKey<LedgerEvent>(e => e.AdjustmentId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Payment)
+                .WithOne(p => p.LedgerEvent)
+                .HasForeignKey<LedgerEvent>(e => e.PaymentId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.PaymentStatusChange)
+                .WithOne(psc => psc.LedgerEvent)
+                .HasForeignKey<LedgerEvent>(e => e.PaymentStatusChangeId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+
+    private static void ConfigureDebtAdjustment(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<DebtAdjustment>(entity =>
+        {
+            entity.Property(e => e.Amount)
+                .HasPrecision(18, 2);
+        });
+    }
+
+    private static void ConfigureDebtPayment(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<DebtPayment>(entity =>
+        {
+            entity.Property(e => e.Method)
+                .HasConversion<string>();
+
+            entity.Property(e => e.Amount)
+                .HasPrecision(18, 2);
+        });
+    }
+
+    private static void ConfigureDebtPaymentStatusChange(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<DebtPaymentStatusChange>(entity =>
+        {
+            entity.Property(e => e.Status)
+                .HasConversion<string>();
         });
     }
 }

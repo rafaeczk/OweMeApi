@@ -6,20 +6,20 @@ using OweMeApi.Data;
 namespace OweMeApi.Modules.Friends.Features.AcceptFriendRequest;
 
 public class AcceptFriendRequestHandler(AppDbContext context)
-    : IRequestHandler<AcceptFriendRequestCommand, Result>
+    : IRequestHandler<AcceptFriendRequestCommand, HandlerResult>
 {
-    public async Task<Result> Handle(AcceptFriendRequestCommand request, CancellationToken ct)
+    public async Task<HandlerResult> Handle(AcceptFriendRequestCommand request, CancellationToken ct)
     {
         var friendship = await context.Friendships.FirstOrDefaultAsync(fs => fs.UserId == request.FriendId && fs.FriendId == request.UserId, ct);
 
         if (friendship == null)
-            return Result.Failure("Friendship not found", ErrorCode.NotFound);
+            return HandlerResult.Failure("Friendship not found", ErrorCode.NotFound);
 
         friendship.IsAccepted = true;
         friendship.AcceptedAt = DateTime.UtcNow;
 
         await context.SaveChangesAsync(ct);
 
-        return Result.Success();
+        return HandlerResult.Success();
     }
 }
