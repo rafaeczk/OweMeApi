@@ -22,46 +22,6 @@ namespace OweMeApi.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("OweMeApi.Data.Entities.Debt", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("CreditorApproves")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("CreditorId")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("DebtorApproves")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("DebtorId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreditorId");
-
-                    b.HasIndex("DebtorId");
-
-                    b.ToTable("Debts");
-                });
-
             modelBuilder.Entity("OweMeApi.Data.Entities.FriendCode", b =>
                 {
                     b.Property<Guid>("UserId")
@@ -107,7 +67,38 @@ namespace OweMeApi.Migrations
                     b.ToTable("Friendships");
                 });
 
-            modelBuilder.Entity("OweMeApi.Data.Entities.LedgerEntry", b =>
+            modelBuilder.Entity("OweMeApi.Data.Entities.Ledger.Debt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreditorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("DebtorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreditorId");
+
+                    b.HasIndex("DebtorId");
+
+                    b.ToTable("Debts");
+                });
+
+            modelBuilder.Entity("OweMeApi.Data.Entities.Ledger.DebtAdjustment", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -116,47 +107,117 @@ namespace OweMeApi.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("numeric");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("CreatedByUserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("DebtId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ExternalReference")
+                    b.Property<string>("Note")
+                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("InternalReference")
+                    b.HasKey("Id");
+
+                    b.ToTable("DebtAdjustments");
+                });
+
+            modelBuilder.Entity("OweMeApi.Data.Entities.Ledger.DebtPayment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("Method")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Note")
                         .HasColumnType("text");
 
-                    b.Property<string>("PaymentMethod")
-                        .IsRequired()
+                    b.Property<Guid>("PayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ReceiverId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PayerId");
+
+                    b.HasIndex("ReceiverId");
+
+                    b.ToTable("DebtPayments");
+                });
+
+            modelBuilder.Entity("OweMeApi.Data.Entities.Ledger.DebtPaymentStatusChange", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Note")
                         .HasColumnType("text");
 
-                    b.Property<string>("PaymentStatus")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("PaymentId")
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("TransactionType")
+                    b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedByUserId");
+                    b.HasIndex("PaymentId");
+
+                    b.ToTable("DebtPaymentStatusChanges");
+                });
+
+            modelBuilder.Entity("OweMeApi.Data.Entities.Ledger.LedgerEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AdjustmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("DebtId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("InternalReference")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("PaymentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("PaymentStatusChangeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActorId");
+
+                    b.HasIndex("AdjustmentId")
+                        .IsUnique();
 
                     b.HasIndex("DebtId");
 
-                    b.HasIndex("InternalReference")
+                    b.HasIndex("PaymentId")
                         .IsUnique();
 
-                    b.ToTable("LedgerEntries");
+                    b.HasIndex("PaymentStatusChangeId")
+                        .IsUnique();
+
+                    b.ToTable("LedgerEvents");
                 });
 
             modelBuilder.Entity("OweMeApi.Data.Entities.User", b =>
@@ -226,25 +287,6 @@ namespace OweMeApi.Migrations
                         });
                 });
 
-            modelBuilder.Entity("OweMeApi.Data.Entities.Debt", b =>
-                {
-                    b.HasOne("OweMeApi.Data.Entities.User", "Creditor")
-                        .WithMany()
-                        .HasForeignKey("CreditorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OweMeApi.Data.Entities.User", "Debtor")
-                        .WithMany()
-                        .HasForeignKey("DebtorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Creditor");
-
-                    b.Navigation("Debtor");
-                });
-
             modelBuilder.Entity("OweMeApi.Data.Entities.FriendCode", b =>
                 {
                     b.HasOne("OweMeApi.Data.Entities.User", null)
@@ -273,23 +315,92 @@ namespace OweMeApi.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("OweMeApi.Data.Entities.LedgerEntry", b =>
+            modelBuilder.Entity("OweMeApi.Data.Entities.Ledger.Debt", b =>
                 {
-                    b.HasOne("OweMeApi.Data.Entities.User", "CreatedBy")
+                    b.HasOne("OweMeApi.Data.Entities.User", "Creditor")
                         .WithMany()
-                        .HasForeignKey("CreatedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasForeignKey("CreditorId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OweMeApi.Data.Entities.Debt", "Debt")
+                    b.HasOne("OweMeApi.Data.Entities.User", "Debtor")
                         .WithMany()
+                        .HasForeignKey("DebtorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Creditor");
+
+                    b.Navigation("Debtor");
+                });
+
+            modelBuilder.Entity("OweMeApi.Data.Entities.Ledger.DebtPayment", b =>
+                {
+                    b.HasOne("OweMeApi.Data.Entities.User", "Payer")
+                        .WithMany()
+                        .HasForeignKey("PayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OweMeApi.Data.Entities.User", "Receiver")
+                        .WithMany()
+                        .HasForeignKey("ReceiverId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Payer");
+
+                    b.Navigation("Receiver");
+                });
+
+            modelBuilder.Entity("OweMeApi.Data.Entities.Ledger.DebtPaymentStatusChange", b =>
+                {
+                    b.HasOne("OweMeApi.Data.Entities.Ledger.DebtPayment", "Payment")
+                        .WithMany("StatusChanges")
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Payment");
+                });
+
+            modelBuilder.Entity("OweMeApi.Data.Entities.Ledger.LedgerEvent", b =>
+                {
+                    b.HasOne("OweMeApi.Data.Entities.User", "Actor")
+                        .WithMany()
+                        .HasForeignKey("ActorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("OweMeApi.Data.Entities.Ledger.DebtAdjustment", "Adjustment")
+                        .WithOne("LedgerEvent")
+                        .HasForeignKey("OweMeApi.Data.Entities.Ledger.LedgerEvent", "AdjustmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("OweMeApi.Data.Entities.Ledger.Debt", "Debt")
+                        .WithMany("LedgerEvents")
                         .HasForeignKey("DebtId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("CreatedBy");
+                    b.HasOne("OweMeApi.Data.Entities.Ledger.DebtPayment", "Payment")
+                        .WithOne("LedgerEvent")
+                        .HasForeignKey("OweMeApi.Data.Entities.Ledger.LedgerEvent", "PaymentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("OweMeApi.Data.Entities.Ledger.DebtPaymentStatusChange", "PaymentStatusChange")
+                        .WithOne("LedgerEvent")
+                        .HasForeignKey("OweMeApi.Data.Entities.Ledger.LedgerEvent", "PaymentStatusChangeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Actor");
+
+                    b.Navigation("Adjustment");
 
                     b.Navigation("Debt");
+
+                    b.Navigation("Payment");
+
+                    b.Navigation("PaymentStatusChange");
                 });
 
             modelBuilder.Entity("OweMeApi.Data.Entities.User", b =>
@@ -301,6 +412,31 @@ namespace OweMeApi.Migrations
                         .IsRequired();
 
                     b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("OweMeApi.Data.Entities.Ledger.Debt", b =>
+                {
+                    b.Navigation("LedgerEvents");
+                });
+
+            modelBuilder.Entity("OweMeApi.Data.Entities.Ledger.DebtAdjustment", b =>
+                {
+                    b.Navigation("LedgerEvent")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("OweMeApi.Data.Entities.Ledger.DebtPayment", b =>
+                {
+                    b.Navigation("LedgerEvent")
+                        .IsRequired();
+
+                    b.Navigation("StatusChanges");
+                });
+
+            modelBuilder.Entity("OweMeApi.Data.Entities.Ledger.DebtPaymentStatusChange", b =>
+                {
+                    b.Navigation("LedgerEvent")
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

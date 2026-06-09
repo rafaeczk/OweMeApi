@@ -1,3 +1,3 @@
 ﻿namespace OweMeApi.Modules.Debts.Dtos;
 
-public record ChangeDebtApprovementDTO(bool Approved);
+public record ChangeDebtApprovementDTO(bool Approve);

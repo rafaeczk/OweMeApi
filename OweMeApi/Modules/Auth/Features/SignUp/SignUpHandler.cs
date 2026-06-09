@@ -7,12 +7,12 @@ using OweMeApi.Modules.Auth.Dtos;
 
 namespace OweMeApi.Modules.Auth.Features.SignUp;
 
-public class SignUpHandler(AppDbContext context) : IRequestHandler<SignUpCommand, Result<SignUpResponseDTO>>
+public class SignUpHandler(AppDbContext context) : IRequestHandler<SignUpCommand, HandlerResult<SignUpResponseDTO>>
 {
-    public async Task<Result<SignUpResponseDTO>> Handle(SignUpCommand request, CancellationToken ct)
+    public async Task<HandlerResult<SignUpResponseDTO>> Handle(SignUpCommand request, CancellationToken ct)
     {
         if (await context.Users.AnyAsync(u => u.Email == request.Email, ct))
-            return Result.Failure("This email is already in use.", ErrorCode.BadRequest);
+            return HandlerResult.Failure("This email is already in use.", ErrorCode.BadRequest);
 
         string hash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 

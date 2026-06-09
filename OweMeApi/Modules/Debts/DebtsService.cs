@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OweMeApi.Data;
-using OweMeApi.Data.Entities;
+using OweMeApi.Data.Entities.Ledger;
 using OweMeApi.Modules.Debts.Dtos;
 
 namespace OweMeApi.Modules.Debts;
@@ -9,34 +9,72 @@ public class DebtsService(AppDbContext context)
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<(decimal, decimal)> CalcDebtTotals(Debt debt)
+    public async Task<decimal> GetTotalAmount(Guid debtId, CancellationToken ct)
     {
-        decimal totalAmount = debt.Amount + await _context.LedgerEntries
-            .Where(e => e.DebtId == debt.Id && e.TransactionType == TransactionType.Adjustment)
-            .SumAsync(e => (decimal?)e.Amount) ?? 0;
-
-        decimal totalPayments = await _context.LedgerEntries
-            .Where(e => e.DebtId == debt.Id && e.TransactionType == TransactionType.Payment && e.PaymentStatus == PaymentStatus.Confirmed)
-            .SumAsync(e => (decimal?)e.Amount) ?? 0;
-
-        return (totalAmount, totalPayments);
+        return await _context.LedgerEvents
+            .Where(e => e.DebtId == debtId && e.EventType == LedgerEventType.Adjustment)
+            .OrderByDescending(e => e.Timestamp)
+            .Select(e => e.Adjustment!.Amount)
+            .FirstOrDefaultAsync(ct);
     }
 
-    public async Task<(decimal, decimal, DebtSummaryDTO)> CalcDebtSummary(Debt debt)
+    public async Task<decimal> GetTotalPayments(Guid debtId, CancellationToken ct)
     {
-        var (totalAmount, totalPayments) = await CalcDebtTotals(debt);
+        return await _context.LedgerEvents
+            .Where(e => e.DebtId == debtId && e.EventType == LedgerEventType.Payment)
+            .OrderByDescending(e => e.Timestamp)
+            .Select(e => e.Payment)
+            .Where(p => p != null)
+            .Where(p => p!.StatusChanges
+                .OrderByDescending(sc => sc.LedgerEvent.Timestamp)
+                .Select(sc => (PaymentStatus?)sc.Status)
+                .FirstOrDefault() == PaymentStatus.Success)
+            .Select(p =>
+                (p!.PayerId == p.LedgerEvent.Debt.CreditorId && p!.ReceiverId == p.LedgerEvent.Debt.DebtorId)
+                    ? -p!.Amount
+                    : (p!.PayerId == p.LedgerEvent.Debt.DebtorId && p!.ReceiverId == p.LedgerEvent.Debt.CreditorId)
+                        ? p!.Amount
+                        : 0m)
+            .SumAsync(ct);
+    }
 
-        decimal amount = totalAmount - totalPayments;
+    public DebtSummaryDTO GetSummary(decimal totalAmount, decimal totalPayments, Guid creditorId, Guid debtorId)
+    {
+        var diff = totalAmount - totalPayments;
 
-        DebtSummaryDTO summary;
-
-        if (amount > 0)
-            summary = new DebtSummaryDTO(debt.DebtorId, debt.CreditorId, Math.Abs(amount));
-        else if (amount < 0)
-            summary = new DebtSummaryDTO(debt.CreditorId, debt.DebtorId, Math.Abs(amount));
+        if (diff > 0)
+            return new DebtSummaryDTO(debtorId, creditorId, Math.Abs(diff));
+        else if (diff < 0)
+            return new DebtSummaryDTO(creditorId, debtorId, Math.Abs(diff));
         else
-            summary = new DebtSummaryDTO(Guid.Empty, Guid.Empty, 0m);
+            return new DebtSummaryDTO(Guid.Empty, Guid.Empty, 0m);
+    }
 
-        return (totalAmount, totalPayments, summary);
+    public async Task<bool> GetCreditorApproves(Guid debtId, CancellationToken ct)
+    {
+        return await _context.LedgerEvents
+            .Where(e =>
+                (e.EventType == LedgerEventType.CreditorDebtApprovement || e.EventType == LedgerEventType.CreditorDebtDisapprovement)
+                && e.DebtId == debtId)
+            .OrderByDescending(e => e.Timestamp)
+            .Select(e => e.EventType == LedgerEventType.CreditorDebtApprovement)
+            .FirstOrDefaultAsync(ct);
+    }
+
+    public async Task<bool> GetDebtorApproves(Guid debtId, CancellationToken ct)
+    {
+        return await _context.LedgerEvents
+            .Where(e =>
+                (e.EventType == LedgerEventType.DebtorDebtApprovement || e.EventType == LedgerEventType.DebtorDebtDisapprovement)
+                && e.DebtId == debtId)
+            .OrderByDescending(e => e.Timestamp)
+            .Select(e => e.EventType == LedgerEventType.DebtorDebtApprovement)
+            .FirstOrDefaultAsync(ct);
+    }
+
+    public async Task<bool> GetDebtIsSettled(Guid debtId, CancellationToken ct)
+    {
+        return await _context.LedgerEvents
+            .AnyAsync(e => e.DebtId == debtId && e.EventType == LedgerEventType.DebtSettlement, ct);
     }
 }

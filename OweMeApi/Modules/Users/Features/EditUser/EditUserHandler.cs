@@ -6,17 +6,17 @@ using OweMeApi.Data.Entities;
 
 namespace OweMeApi.Modules.Users.Features.EditUser;
 
-public class EditUserHandler(AppDbContext context) : IRequestHandler<EditUserCommand, Result>
+public class EditUserHandler(AppDbContext context) : IRequestHandler<EditUserCommand, HandlerResult>
 {
-    public async Task<Result> Handle(EditUserCommand request, CancellationToken ct)
+    public async Task<HandlerResult> Handle(EditUserCommand request, CancellationToken ct)
     {
         var user = await context.Users.FindAsync([request.UserId, ct], ct);
 
         if (user == null)
-            return Result.Failure("User not found", ErrorCode.NotFound);
+            return HandlerResult.Failure("User not found", ErrorCode.NotFound);
 
         if (!(await context.UserRoles.AnyAsync(r => r.Code == request.RoleCode, ct)))
-            return Result.Failure("Wrong RoleCode", ErrorCode.BadRequest);
+            return HandlerResult.Failure("Wrong RoleCode", ErrorCode.BadRequest);
 
         user.Email = request.Email;
         user.FullName = request.Fullname;
@@ -24,6 +24,6 @@ public class EditUserHandler(AppDbContext context) : IRequestHandler<EditUserCom
 
         await context.SaveChangesAsync(ct);
 
-        return Result.Success();
+        return HandlerResult.Success();
     }
 }
