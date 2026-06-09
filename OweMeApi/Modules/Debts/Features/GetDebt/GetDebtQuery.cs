@@ -1,6 +1,5 @@
 ﻿using MediatR;
 using OweMeApi.Common;
-using OweMeApi.Modules.Debts.Dtos;
 
 namespace OweMeApi.Modules.Debts.Features.GetDebt;
 

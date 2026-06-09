@@ -1,3 +1,3 @@
-﻿namespace OweMeApi.Modules.Debts.Dtos;
+﻿namespace OweMeApi.Modules.Debts.Features.EditDebtInformation;
 
 public record EditDebtInformationDTO(string Title, string? Description);

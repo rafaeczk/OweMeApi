@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
 using OweMeApi.Data;
-using OweMeApi.Modules.Debts.Dtos;
 
 namespace OweMeApi.Modules.Debts.Features.GetDebt;
 

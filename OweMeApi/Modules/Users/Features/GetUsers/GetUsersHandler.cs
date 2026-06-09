@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
 using OweMeApi.Data;
 using OweMeApi.Modules.UserRoles.Dtos;
-using OweMeApi.Modules.Users.Dtos;
 
 namespace OweMeApi.Modules.Users.Features.GetUsers;
 

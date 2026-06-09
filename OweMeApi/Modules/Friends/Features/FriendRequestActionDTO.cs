@@ -1,4 +1,3 @@
-﻿namespace OweMeApi.Modules.Friends.Dtos;
+﻿namespace OweMeApi.Modules.Friends.Features;
 
 public record FriendRequestActionDTO(Guid FriendId);
-

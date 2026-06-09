@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
 using OweMeApi.Data;
-using OweMeApi.Data.Entities;
 
 namespace OweMeApi.Modules.Users.Features.EditUser;
 

@@ -1,10 +1,11 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using OweMeApi.Data;
 using OweMeApi.Extensions;
-using OweMeApi.Modules.Users.Dtos;
+using OweMeApi.Modules.Users.Features;
+using OweMeApi.Modules.Users.Features.ChangeUserPassword;
+using OweMeApi.Modules.Users.Features.EditUser;
 using OweMeApi.Modules.Users.Features.GetMe;
 using OweMeApi.Modules.Users.Features.GetUsers;
 
@@ -39,51 +40,18 @@ namespace OweMeApi.Modules.Users
         [Authorize(Policy = "AdminOrModerator")]
         public async Task<ActionResult<UserDTO>> EditUser(Guid userId, [FromBody] EditUserDTO dto)
         {
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
-                return NotFound("User not found");
+            var result = await _mediator.Send(new EditUserCommand(userId, dto.Email, dto.Fullname, dto.RoleCode));
 
-            if (!(await _context.UserRoles.AnyAsync(r => r.Code == dto.RoleCode)))
-                return BadRequest("Wrong RoleCode");
-
-            user.Email = dto.Email;
-            user.FullName = dto.Fullname;
-            user.RoleCode = dto.RoleCode;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                return Conflict("DB error");
-            }
-
-            return NoContent();
+            return result.ToActionResult();
         }
 
         [HttpPut("{userId}/password")]
         [Authorize(Policy = "Admin")]
         public async Task<ActionResult> ChangeUserPassword(Guid userId, [FromBody] ChangeUserPasswordDTO dto)
         {
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
-                return NotFound("User not found");
+            var result = await _mediator.Send(new ChangeUserPasswordCommand(userId, dto.Password));
 
-            string hash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-
-            user.Hash = hash;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                return Conflict("DB error");
-            }
-
-            return NoContent();
+            return result.ToActionResult();
         }
     }
 }

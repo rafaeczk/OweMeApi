@@ -1,3 +1,3 @@
-﻿namespace OweMeApi.Modules.Auth.Dtos;
+﻿namespace OweMeApi.Modules.Auth.Features.SignUp;
 
 public record SignUpDTO(string Email, string FullName, string Password);

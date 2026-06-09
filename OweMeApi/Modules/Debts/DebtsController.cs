@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OweMeApi.Extensions;
-using OweMeApi.Modules.Debts.Dtos;
 using OweMeApi.Modules.Debts.Features.CreateDebt;
 using OweMeApi.Modules.Debts.Features.GetDebts;
 using OweMeApi.Modules.Debts.Features.GetDebt;

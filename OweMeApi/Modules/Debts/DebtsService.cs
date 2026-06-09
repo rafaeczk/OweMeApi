@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OweMeApi.Data;
 using OweMeApi.Data.Entities.Ledger;
-using OweMeApi.Modules.Debts.Dtos;
+using OweMeApi.Modules.Debts.Features.GetDebt;
 
 namespace OweMeApi.Modules.Debts;
 

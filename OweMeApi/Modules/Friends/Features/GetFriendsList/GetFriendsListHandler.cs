@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
 using OweMeApi.Data;
-using OweMeApi.Modules.Friends.Dtos;
 
 namespace OweMeApi.Modules.Friends.Features.GetFriendsList;
 

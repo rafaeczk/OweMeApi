@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OweMeApi.Data;
 using OweMeApi.Extensions;
-using OweMeApi.Modules.Friends.Dtos;
+using OweMeApi.Modules.Friends.Features;
 using OweMeApi.Modules.Friends.Features.AcceptFriendRequest;
 using OweMeApi.Modules.Friends.Features.AddFriendByCode;
 using OweMeApi.Modules.Friends.Features.DeclineFriendRequest;

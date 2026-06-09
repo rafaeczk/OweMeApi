@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
 using OweMeApi.Data;
 using OweMeApi.Data.Entities.Ledger;
-using OweMeApi.Modules.Debts.Dtos;
 
 namespace OweMeApi.Modules.Debts.Features.GetDebtHistory;
 

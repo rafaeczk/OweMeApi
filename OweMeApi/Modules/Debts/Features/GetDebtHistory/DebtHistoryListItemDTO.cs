@@ -1,6 +1,6 @@
 ﻿using OweMeApi.Data.Entities.Ledger;
 
-namespace OweMeApi.Modules.Debts.Dtos;
+namespace OweMeApi.Modules.Debts.Features.GetDebtHistory;
 
 public record DebtHistoryListItemAdjustmentDTO(
     Guid AdjustmentId, 

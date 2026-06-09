@@ -1,6 +1,6 @@
-﻿namespace OweMeApi.Modules.Debts.Dtos;
+﻿namespace OweMeApi.Modules.Debts.Features.GetDebt;
 
-public record DebtListItemDTO(
+public record DebtDTO(
     Guid Id,
     string Title,
     string? Description,
@@ -8,6 +8,7 @@ public record DebtListItemDTO(
     Guid DebtorId,
     decimal TotalAmount,
     decimal TotalPayments,
+    DebtSummaryDTO Summary,
     bool CreditorApproves,
     bool DebtorApproves,
     bool IsSettled

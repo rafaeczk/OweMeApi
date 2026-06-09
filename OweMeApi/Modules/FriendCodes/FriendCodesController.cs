@@ -1,37 +1,23 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using OweMeApi.Data;
-using OweMeApi.Data.Entities;
 using OweMeApi.Extensions;
-using OweMeApi.Modules.FriendCodes.Dtos;
+using OweMeApi.Modules.FriendCodes.Features.GenerateMyCode;
 
 namespace OweMeApi.Modules.FriendCodes;
 
 [Route("api/friend-codes")]
 [ApiController]
-public class FriendCodesController(AppDbContext context, FriendCodesService friendCodesService) : ControllerBase
+public class FriendCodesController(IMediator mediator) : ControllerBase
 {
-    private readonly AppDbContext _context = context;
-    private readonly FriendCodesService _friendCodesService = friendCodesService;
+    private readonly IMediator _mediator = mediator;
 
     [HttpGet("generate-code")]
     [Authorize(Policy = "All")]
     public async Task<ActionResult<FriendCodeDTO>> GenerateMyCode()
     {
-        await _friendCodesService.DeleteExpiredCodes();
+        var result = await _mediator.Send(new GenerateMyCodeCommand(User.GetUserId()));
 
-        var userId = User.GetUserId();
-
-        var friendCode = new FriendCode()
-        {
-            UserId = userId,
-            ExpiresAt = DateTime.UtcNow.AddHours(12),
-            Code = _friendCodesService.GenerateFriendCode()
-        };
-
-        _context.FriendCodes.Add(friendCode);
-        await _context.SaveChangesAsync();
-
-        return Ok(new FriendCodeDTO(friendCode.Code, friendCode.ExpiresAt));
+        return result.ToActionResult();
     }
 }

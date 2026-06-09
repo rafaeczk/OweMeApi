@@ -1,3 +1,3 @@
-﻿namespace OweMeApi.Modules.Friends.Dtos;
+﻿namespace OweMeApi.Modules.Friends.Features;
 
 public record AddFriendResponseDTO(Guid UserId);

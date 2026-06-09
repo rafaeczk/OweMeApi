@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using OweMeApi.Modules.Auth.Dtos;
 using OweMeApi.Modules.Auth.Features.SignIn;
 using OweMeApi.Modules.Auth.Features.SignUp;
 
