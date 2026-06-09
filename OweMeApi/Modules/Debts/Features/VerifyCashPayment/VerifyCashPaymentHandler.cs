@@ -1,32 +1,30 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
+using OweMeApi.Contexts;
 using OweMeApi.Data;
 using OweMeApi.Data.Entities.Ledger;
+using OweMeApi.Filters;
 
 namespace OweMeApi.Modules.Debts.Features.VerifyCashPayment;
 
 public class VerifyCashPaymentHandler(
     AppDbContext context,
+    IUserContext user,
     ILogger<VerifyCashPaymentHandler> logger) : IRequestHandler<VerifyCashPaymentCommand, HandlerResult>
 {
     public async Task<HandlerResult> Handle(VerifyCashPaymentCommand request, CancellationToken ct)
     {
-        var paymentEvent = await context.LedgerEvents
-            .Include(e => e.Payment)
-            .FirstOrDefaultAsync(e => e.Id == request.LedgerEventId && e.EventType == LedgerEventType.Payment, ct);
+        var payment = await context.DebtPayments
+            .DebtPaymentPayerOnly(user)
+            .Include(p => p.LedgerEvent)
+            .FirstOrDefaultAsync(p => p.Id == request.PaymentId, ct);
 
-        if (paymentEvent == null)
+        if (payment == null)
             return HandlerResult.Failure("Payment not found", ErrorCode.NotFound);
 
-        if (paymentEvent.PaymentId == null || paymentEvent.Payment == null)
-            return HandlerResult.Failure("Payment is missing in event", ErrorCode.NotFound);
-
-        if (paymentEvent.Payment.ReceiverId != request.UserId)
-            return HandlerResult.Failure("You cannot verify this payment", ErrorCode.Unauthorized);
-
         var currentPaymentStatus = await context.DebtPaymentStatusChanges
-            .Where(psc => psc.PaymentId == paymentEvent.Payment.Id)
+            .Where(psc => psc.PaymentId == payment.Id)
             .OrderByDescending(psc => psc.LedgerEvent.Timestamp)
             .Select(psc => psc.Status)
             .FirstOrDefaultAsync(ct);
@@ -41,7 +39,7 @@ public class VerifyCashPaymentHandler(
             DebtPaymentStatusChange statusChange = new()
             {
                 Id = Guid.NewGuid(),
-                PaymentId = paymentEvent.PaymentId.Value,
+                PaymentId = payment.Id,
                 Status = request.Status,
                 Note = request.Note
             };
@@ -50,8 +48,8 @@ public class VerifyCashPaymentHandler(
             LedgerEvent statusChangeEvent = new()
             {
                 Id = Guid.NewGuid(),
-                DebtId = paymentEvent.DebtId,
-                ActorId = request.UserId,
+                DebtId = payment.LedgerEvent.DebtId,
+                ActorId = user.Id,
                 EventType = LedgerEventType.PaymentStatusChange,
                 PaymentStatusChangeId = statusChange.Id,
                 InternalReference = LedgerEvent.GenReferenceNumber
@@ -65,7 +63,7 @@ public class VerifyCashPaymentHandler(
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Payment verification error for {UserId}", request.UserId);
+            logger.LogError(exception, "Payment verification error for {UserId}", user.Id);
 
             return HandlerResult.Failure("Technical error", ErrorCode.InternalError);
         }

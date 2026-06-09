@@ -1,12 +1,16 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
+using OweMeApi.Contexts;
 using OweMeApi.Data;
 using OweMeApi.Data.Entities.Ledger;
+using OweMeApi.Filters;
 
 namespace OweMeApi.Modules.Debts.Features.GetDebts;
 
-public class GetDebtsHandler(AppDbContext context) : IRequestHandler<GetDebtsQuery, HandlerResult<List<DebtListItemDTO>>>
+public class GetDebtsHandler(
+    AppDbContext context,
+    IUserContext user) : IRequestHandler<GetDebtsQuery, HandlerResult<List<DebtListItemDTO>>>
 {
     public async Task<HandlerResult<List<DebtListItemDTO>>> Handle(GetDebtsQuery request, CancellationToken ct)
     {
@@ -14,9 +18,9 @@ public class GetDebtsHandler(AppDbContext context) : IRequestHandler<GetDebtsQue
 
         debtsQuery = request.Role switch
         {
-            QEUserRoleInDebt.Creditor => debtsQuery.Where(d => d.CreditorId == request.UserId),
-            QEUserRoleInDebt.Debtor => debtsQuery.Where(d => d.DebtorId == request.UserId),
-            _ => debtsQuery.Where(d => d.CreditorId == request.UserId || d.DebtorId == request.UserId),
+            QEUserRoleInDebt.Creditor => debtsQuery.DebtCreditorOnly(user),
+            QEUserRoleInDebt.Debtor => debtsQuery.DebtDebtorOnly(user),
+            _ => debtsQuery.DebtOwnerOnly(user),
         };
 
         debtsQuery = request.State switch

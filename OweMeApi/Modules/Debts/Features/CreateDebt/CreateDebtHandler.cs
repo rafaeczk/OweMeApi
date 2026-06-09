@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
+using OweMeApi.Contexts;
 using OweMeApi.Data;
 using OweMeApi.Data.Entities.Ledger;
 
@@ -8,14 +9,15 @@ namespace OweMeApi.Modules.Debts.Features.CreateDebt;
 
 public class CreateDebtHandler(
     AppDbContext context,
-    ILogger<CreateDebtHandler> logger) : IRequestHandler<CreateDebtCommand, HandlerResult<Guid>>
+    ILogger<CreateDebtHandler> logger,
+    IUserContext user) : IRequestHandler<CreateDebtCommand, HandlerResult<Guid>>
 {
     public async Task<HandlerResult<Guid>> Handle(CreateDebtCommand request, CancellationToken ct)
     {
         if (!await context.Users.AnyAsync(u => u.Id == request.DebtorId, ct))
             return HandlerResult.Failure("Debtor not found", ErrorCode.NotFound);
 
-        if (request.UserId == request.DebtorId)
+        if (user.Id == request.DebtorId)
             return HandlerResult.Failure("You cannot debt yourself", ErrorCode.BadRequest);
 
         using var transaction = await context.Database.BeginTransactionAsync(ct);
@@ -27,7 +29,7 @@ public class CreateDebtHandler(
                 Id = Guid.NewGuid(),
                 Title = request.Title,
                 Description = request.Description,
-                CreditorId = request.UserId,
+                CreditorId = user.Id,
                 DebtorId = request.DebtorId
             };
             context.Debts.Add(debt);
@@ -43,7 +45,7 @@ public class CreateDebtHandler(
             LedgerEvent adjustmentEvent = new()
             {
                 DebtId = debt.Id,
-                ActorId = request.UserId,
+                ActorId = user.Id,
                 EventType = LedgerEventType.Adjustment,
                 AdjustmentId = adjustment.Id,
                 InternalReference = LedgerEvent.GenReferenceNumber

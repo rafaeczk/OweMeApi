@@ -13,4 +13,4 @@ public enum QEDebtState
     Settled, Unsettled, Any
 }
 
-public record GetDebtsQuery(Guid UserId, QEUserRoleInDebt Role, QEDebtState State) : IRequest<HandlerResult<List<DebtListItemDTO>>>;
+public record GetDebtsQuery(QEUserRoleInDebt Role, QEDebtState State) : IRequest<HandlerResult<List<DebtListItemDTO>>>;

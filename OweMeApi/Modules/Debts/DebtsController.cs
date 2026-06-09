@@ -27,7 +27,7 @@ public class DebtsController(IMediator mediator) : ControllerBase
         [FromQuery, AllowedValues("creditor", "debtor", "any")] string role = "any",
         [FromQuery, AllowedValues("settled", "unsettled", "any")] string state = "any")
     {
-        QEUserRoleInDebt userRole = role switch
+        QEUserRoleInDebt userRoleInDebt = role switch
         {
             "creditor" => QEUserRoleInDebt.Creditor,
             "debtor" => QEUserRoleInDebt.Debtor,
@@ -41,7 +41,7 @@ public class DebtsController(IMediator mediator) : ControllerBase
             _ => QEDebtState.Any,
         };
 
-        var result = await _mediator.Send(new GetDebtsQuery(User.GetUserId(), userRole, debtState));
+        var result = await _mediator.Send(new GetDebtsQuery(userRoleInDebt, debtState));
 
         return result.ToActionResult();
     }
@@ -50,7 +50,7 @@ public class DebtsController(IMediator mediator) : ControllerBase
     [Authorize(Policy = "All")]
     public async Task<ActionResult<DebtDTO>> GetDebt(Guid debtId)
     {
-        var result = await _mediator.Send(new GetDebtQuery(User.GetUserId(), debtId));
+        var result = await _mediator.Send(new GetDebtQuery(debtId));
 
         return result.ToActionResult();
     }
@@ -59,7 +59,7 @@ public class DebtsController(IMediator mediator) : ControllerBase
     [Authorize(Policy = "User")]
     public async Task<ActionResult<Guid>> CreateDebt([FromBody] CreateDebtDTO dto)
     {
-        var result = await _mediator.Send(new CreateDebtCommand(User.GetUserId(), dto.DebtorId, dto.Title, dto.Description, dto.Amount));
+        var result = await _mediator.Send(new CreateDebtCommand(dto.DebtorId, dto.Title, dto.Description, dto.Amount));
 
         return result.ToActionResult();
     }
@@ -68,7 +68,7 @@ public class DebtsController(IMediator mediator) : ControllerBase
     [Authorize(Policy = "All")]
     public async Task<ActionResult<Guid>> CreateDebt(Guid debtId, [FromBody] EditDebtInformationDTO dto)
     {
-        var result = await _mediator.Send(new EditDebtInformationCommand(User.GetUserId(), debtId, dto.Title, dto.Description));
+        var result = await _mediator.Send(new EditDebtInformationCommand(debtId, dto.Title, dto.Description));
 
         return result.ToActionResult();
     }
@@ -77,7 +77,7 @@ public class DebtsController(IMediator mediator) : ControllerBase
     [Authorize(Policy = "User")]
     public async Task<ActionResult<Guid>> CreatePayment([FromBody] CreatePaymentDTO dto)
     {
-        var result = await _mediator.Send(new CreatePaymentCommand(User.GetUserId(), dto.DebtId, dto.Amount, dto.Note, dto.PaymentMethod));
+        var result = await _mediator.Send(new CreatePaymentCommand(dto.DebtId, dto.Amount, dto.Note, dto.PaymentMethod));
 
         return result.ToActionResult();
     }
@@ -86,7 +86,7 @@ public class DebtsController(IMediator mediator) : ControllerBase
     [Authorize(Policy = "User")]
     public async Task<ActionResult> VerifyCashPayment([FromBody] VerifyCashPaymentDTO dto)
     {
-        var result = await _mediator.Send(new VerifyCashPaymentCommand(User.GetUserId(), dto.LedgerEventId, dto.Status, dto.Note));
+        var result = await _mediator.Send(new VerifyCashPaymentCommand(dto.PaymentId, dto.Status, dto.Note));
 
         return result.ToActionResult();
     }
@@ -95,7 +95,7 @@ public class DebtsController(IMediator mediator) : ControllerBase
     [Authorize(Policy = "All")]
     public async Task<ActionResult<List<DebtHistoryListItemDTO>>> GetDebtHistory(Guid debtId)
     {
-        var result = await _mediator.Send(new GetDebtHistoryQuery(User.GetUserId(), debtId));
+        var result = await _mediator.Send(new GetDebtHistoryQuery(debtId));
 
         return result.ToActionResult();
     }
@@ -104,7 +104,7 @@ public class DebtsController(IMediator mediator) : ControllerBase
     [Authorize(Policy = "All")]
     public async Task<ActionResult> ChangeDebtAmount(Guid debtId, [FromBody] ChangeDebtAmountDTO dto)
     {
-        var result = await _mediator.Send(new ChangeDebtAmountCommand(User.GetUserId(), debtId, dto.Amount, dto.Note));
+        var result = await _mediator.Send(new ChangeDebtAmountCommand(debtId, dto.Amount, dto.Note));
 
         return result.ToActionResult();
     }
@@ -113,7 +113,7 @@ public class DebtsController(IMediator mediator) : ControllerBase
     [Authorize(Policy = "All")]
     public async Task<ActionResult> ChangeDebtApprovement(Guid debtId, [FromBody] ChangeDebtApprovementDTO dto)
     {
-        var result = await _mediator.Send(new ChangeDebtApprovementCommand(User.GetUserId(), debtId, dto.Approve));
+        var result = await _mediator.Send(new ChangeDebtApprovementCommand(debtId, dto.Approve));
 
         return result.ToActionResult();
     }

@@ -4,7 +4,7 @@ namespace OweMeApi.Extensions
 {
     public static class ClaimsPrincipalExtensions
     {
-        public static Guid GetUserId(this ClaimsPrincipal user)
+        public static Guid Id(this ClaimsPrincipal user)
         {
             var userIdString = user.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -12,6 +12,16 @@ namespace OweMeApi.Extensions
                 throw new UnauthorizedAccessException("User is not signed in or there is no user id");
 
             return userId;
+        }
+
+        public static string Role(this ClaimsPrincipal user)
+        {
+            var userRole = user.FindFirstValue(ClaimTypes.Role);
+
+            if (string.IsNullOrEmpty(userRole))
+                throw new UnauthorizedAccessException("User is not signed in or there is no user role");
+
+            return userRole;
         }
     }
 }

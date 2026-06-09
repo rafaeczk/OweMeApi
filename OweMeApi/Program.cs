@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using OweMeApi.Contexts;
 using OweMeApi.Data;
 using OweMeApi.Extensions;
 using OweMeApi.Modules.Auth;
@@ -57,6 +58,9 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IUserContext, UserContext>();
 
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<FriendCodesService>();

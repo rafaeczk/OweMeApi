@@ -1,17 +1,21 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
+using OweMeApi.Contexts;
 using OweMeApi.Data;
 using OweMeApi.Data.Entities.Ledger;
+using OweMeApi.Filters;
 
 namespace OweMeApi.Modules.Debts.Features.ChangeDebtAmount;
 
-public class ChangeDebtAmountHandler(AppDbContext context,
+public class ChangeDebtAmountHandler(
+    AppDbContext context,
+    IUserContext user,
     ILogger<ChangeDebtAmountHandler> logger) : IRequestHandler<ChangeDebtAmountCommand, HandlerResult>
 {
     public async Task<HandlerResult> Handle(ChangeDebtAmountCommand request, CancellationToken ct)
     {
-        if (!await context.Debts.AnyAsync(d => d.Id == request.DebtId && d.CreditorId == request.UserId, ct))
+        if (!await context.Debts.DebtCreditorOnly(user).AnyAsync(d => d.Id == request.DebtId, ct))
             return HandlerResult.Failure("Debt not found", ErrorCode.NotFound);
 
         using var transaction = await context.Database.BeginTransactionAsync(ct);
@@ -29,7 +33,7 @@ public class ChangeDebtAmountHandler(AppDbContext context,
             LedgerEvent adjustmentEvent = new()
             {
                 DebtId = request.DebtId,
-                ActorId = request.UserId,
+                ActorId = user.Id,
                 EventType = LedgerEventType.Adjustment,
                 AdjustmentId = adjustment.Id,
                 InternalReference = LedgerEvent.GenReferenceNumber
@@ -43,7 +47,7 @@ public class ChangeDebtAmountHandler(AppDbContext context,
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Change debt amount error for {UserId}", request.UserId);
+            logger.LogError(exception, "Change debt amount error for {UserId}", user.Id);
 
             return HandlerResult.Failure("Technical error", ErrorCode.InternalError);
         }

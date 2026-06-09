@@ -1,19 +1,24 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
+using OweMeApi.Contexts;
 using OweMeApi.Data;
 using OweMeApi.Data.Entities.Ledger;
+using OweMeApi.Filters;
 
 namespace OweMeApi.Modules.Debts.Features.ChangeDebtApprovement;
 
 public class ChangeDebtApprovementHandler(
     AppDbContext context,
     DebtsService service,
+    IUserContext user,
     ILogger<ChangeDebtApprovementHandler> logger) : IRequestHandler<ChangeDebtApprovementCommand, HandlerResult>
 {
     public async Task<HandlerResult> Handle(ChangeDebtApprovementCommand request, CancellationToken ct)
     {
-        var debt = await context.Debts.FirstOrDefaultAsync(d => d.Id == request.DebtId && (d.CreditorId == request.UserId || d.DebtorId == request.UserId), ct);
+        var debt = await context.Debts
+            .DebtOwnerOnly(user)
+            .FirstOrDefaultAsync(d => d.Id == request.DebtId, ct);
 
         if (debt == null)
             return HandlerResult.Failure("Debt not found", ErrorCode.NotFound);
@@ -28,7 +33,7 @@ public class ChangeDebtApprovementHandler(
             LedgerEvent approvementEvent = new()
             {
                 DebtId = request.DebtId,
-                ActorId = request.UserId,
+                ActorId = user.Id,
                 InternalReference = LedgerEvent.GenReferenceNumber
             };
 
@@ -39,7 +44,7 @@ public class ChangeDebtApprovementHandler(
             bool shouldSettle = false;
 
             // USER IS CREDITOR
-            if (debt.CreditorId == request.UserId)
+            if (debt.CreditorId == user.Id)
             {
                 approvementEvent.EventType = request.Approve ? LedgerEventType.CreditorDebtApprovement : LedgerEventType.CreditorDebtDisapprovement;
 
@@ -51,7 +56,7 @@ public class ChangeDebtApprovementHandler(
             }
 
             // USER IS DEBTOR
-            else if (debt.DebtorId == request.UserId)
+            else if (debt.DebtorId == user.Id)
             {
                 approvementEvent.EventType = request.Approve ? LedgerEventType.DebtorDebtApprovement : LedgerEventType.DebtorDebtDisapprovement;
 
@@ -72,7 +77,7 @@ public class ChangeDebtApprovementHandler(
                 LedgerEvent settlementEvent = new()
                 {
                     DebtId = request.DebtId,
-                    ActorId = request.UserId,
+                    ActorId = user.Id,
                     EventType = LedgerEventType.DebtSettlement,
                     InternalReference = LedgerEvent.GenReferenceNumber
                 };
@@ -87,7 +92,7 @@ public class ChangeDebtApprovementHandler(
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Change debt approvement error for {UserId}", request.UserId);
+            logger.LogError(exception, "Change debt approvement error for {UserId}", user.Id);
 
             return HandlerResult.Failure("Technical error", ErrorCode.InternalError);
         }

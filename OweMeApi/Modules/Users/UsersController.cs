@@ -22,7 +22,7 @@ namespace OweMeApi.Modules.Users
         [Authorize]
         public async Task<ActionResult<UserDTO>> GetMe()
         {
-            var result = await _mediator.Send(new GetMeQuery(User.GetUserId()));
+            var result = await _mediator.Send(new GetMeQuery(User.Id()));
 
             return result.ToActionResult();
         }

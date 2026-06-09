@@ -16,7 +16,7 @@ public class FriendCodesController(IMediator mediator) : ControllerBase
     [Authorize(Policy = "All")]
     public async Task<ActionResult<FriendCodeDTO>> GenerateMyCode()
     {
-        var result = await _mediator.Send(new GenerateMyCodeCommand(User.GetUserId()));
+        var result = await _mediator.Send(new GenerateMyCodeCommand(User.Id()));
 
         return result.ToActionResult();
     }

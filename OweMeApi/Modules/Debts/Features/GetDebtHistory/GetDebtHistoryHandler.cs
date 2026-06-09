@@ -1,12 +1,16 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
+using OweMeApi.Contexts;
 using OweMeApi.Data;
 using OweMeApi.Data.Entities.Ledger;
+using OweMeApi.Filters;
 
 namespace OweMeApi.Modules.Debts.Features.GetDebtHistory;
 
-public class GetDebtHistoryHandler(AppDbContext context) : IRequestHandler<GetDebtHistoryQuery, HandlerResult<List<DebtHistoryListItemDTO>>>
+public class GetDebtHistoryHandler(
+    AppDbContext context,
+    IUserContext user) : IRequestHandler<GetDebtHistoryQuery, HandlerResult<List<DebtHistoryListItemDTO>>>
 {
     private readonly List<LedgerEventType> allowedEventTypes =
     [
@@ -19,7 +23,9 @@ public class GetDebtHistoryHandler(AppDbContext context) : IRequestHandler<GetDe
 
     public async Task<HandlerResult<List<DebtHistoryListItemDTO>>> Handle(GetDebtHistoryQuery request, CancellationToken ct)
     {
-        var debtQuery = context.Debts.Where(d => d.Id == request.DebtId && (d.CreditorId == request.UserId || d.DebtorId == request.UserId));
+        var debtQuery = context.Debts
+            .DebtOwnerOnly(user)
+            .Where(d => d.Id == request.DebtId);
 
         if (!await debtQuery.AnyAsync(ct))
             return HandlerResult.Failure("Debt not found", ErrorCode.NotFound);

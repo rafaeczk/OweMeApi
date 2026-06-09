@@ -21,56 +21,56 @@ namespace OweMeApi.Modules.Friends
         private readonly FriendsService _friendsService = friendsService;
         private readonly IMediator _mediator = mediator;
 
-        [Authorize(Policy = "All")]
+        [Authorize(Policy = "User")]
         [HttpGet("list")]
         public async Task<ActionResult<List<FriendListItemDTO>>> GetFriendsList()
         {
-            var result = await _mediator.Send(new GetFriendsListQuery(User.GetUserId()));
+            var result = await _mediator.Send(new GetFriendsListQuery());
 
             return result.ToActionResult();
         }
 
-        [Authorize(Policy = "All")]
+        [Authorize(Policy = "User")]
         [HttpGet("requests")]
         public async Task<ActionResult<List<FriendRequestDTO>>> GetFriendRequestsList()
         {
-            var result = await _mediator.Send(new GetFriendRequestsListQuery(User.GetUserId()));
+            var result = await _mediator.Send(new GetFriendRequestsListQuery());
 
             return result.ToActionResult();
         }
 
-        [Authorize(Policy = "All")]
+        [Authorize(Policy = "User")]
         [HttpPatch("accept-request")]
         public async Task<ActionResult> AcceptFriendRequest([FromBody] FriendRequestActionDTO dto)
         {
-            var result = await _mediator.Send(new AcceptFriendRequestCommand(User.GetUserId(), dto.FriendId));
+            var result = await _mediator.Send(new AcceptFriendRequestCommand(dto.FriendId));
 
             return result.ToActionResult();
         }
 
-        [Authorize(Policy = "All")]
+        [Authorize(Policy = "User")]
         [HttpDelete("decline-request")]
         public async Task<ActionResult> DeclineFriendRequest([FromBody] FriendRequestActionDTO dto)
         {
-            var result = await _mediator.Send(new DeclineFriendRequestCommand(User.GetUserId(), dto.FriendId));
+            var result = await _mediator.Send(new DeclineFriendRequestCommand(dto.FriendId));
 
             return result.ToActionResult();
         }
 
-        [Authorize(Policy = "All")]
+        [Authorize(Policy = "User")]
         [HttpPost("add-friend-by-code")]
         public async Task<ActionResult<AddFriendResponseDTO>> AddFriendByCode(AddFriendByCodeDTO dto)
         {
-            var result = await _mediator.Send(new AddFriendByCodeCommand(User.GetUserId(), dto.Code));
+            var result = await _mediator.Send(new AddFriendByCodeCommand(dto.Code));
 
             return result.ToActionResult();
         }
 
-        [Authorize(Policy = "All")]
+        [Authorize(Policy = "User")]
         [HttpPost("request-friend-by-user-id")]
         public async Task<ActionResult<AddFriendResponseDTO>> RequestFriendByUserId(RequestFriendByUserIdDTO dto)
         {
-            var result = await _mediator.Send(new RequestFriendByUserIdCommand(User.GetUserId(), dto.FriendId));
+            var result = await _mediator.Send(new RequestFriendByUserIdCommand(dto.FriendId));
 
             return result.ToActionResult();
         }

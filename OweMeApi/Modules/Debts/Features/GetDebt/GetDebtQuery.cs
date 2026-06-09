@@ -3,4 +3,4 @@ using OweMeApi.Common;
 
 namespace OweMeApi.Modules.Debts.Features.GetDebt;
 
-public record GetDebtQuery(Guid UserId, Guid DebtId) : IRequest<HandlerResult<DebtDTO>>;
+public record GetDebtQuery(Guid DebtId) : IRequest<HandlerResult<DebtDTO>>;

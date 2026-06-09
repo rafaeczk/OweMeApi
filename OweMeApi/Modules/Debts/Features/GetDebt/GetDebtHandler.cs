@@ -1,16 +1,22 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
+using OweMeApi.Contexts;
 using OweMeApi.Data;
+using OweMeApi.Filters;
 
 namespace OweMeApi.Modules.Debts.Features.GetDebt;
 
-public class GetDebtHandler(AppDbContext context, DebtsService service) : IRequestHandler<GetDebtQuery, HandlerResult<DebtDTO>>
+public class GetDebtHandler(
+    AppDbContext context, 
+    DebtsService service,
+    IUserContext user) : IRequestHandler<GetDebtQuery, HandlerResult<DebtDTO>>
 {
     public async Task<HandlerResult<DebtDTO>> Handle(GetDebtQuery request, CancellationToken ct)
     {
         var debt = await context.Debts
-            .FirstOrDefaultAsync(d => d.Id == request.DebtId && (d.CreditorId == request.UserId || d.DebtorId == request.UserId), ct);
+            .DebtOwnerOnly(user)
+            .FirstOrDefaultAsync(d => d.Id == request.DebtId, ct);
 
         if (debt == null)
             return HandlerResult.Failure("Debt not found", ErrorCode.NotFound);

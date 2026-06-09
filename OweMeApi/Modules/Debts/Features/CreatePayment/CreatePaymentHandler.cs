@@ -1,23 +1,28 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
+using OweMeApi.Contexts;
 using OweMeApi.Data;
 using OweMeApi.Data.Entities.Ledger;
+using OweMeApi.Filters;
 
 namespace OweMeApi.Modules.Debts.Features.CreatePayment;
 
 public class CreatePaymentHandler(
     AppDbContext context,
+    IUserContext user,
     ILogger<CreatePaymentHandler> logger) : IRequestHandler<CreatePaymentCommand, HandlerResult<Guid>>
 {
     public async Task<HandlerResult<Guid>> Handle(CreatePaymentCommand request, CancellationToken ct)
     {
-        var debt = await context.Debts.FirstOrDefaultAsync(d => d.Id == request.DebtId, ct);
+        var debt = await context.Debts
+            .DebtOwnerOnly(user)
+            .FirstOrDefaultAsync(d => d.Id == request.DebtId, ct);
 
         if (debt == null)
             return HandlerResult.Failure("Debt not found", ErrorCode.NotFound);
 
-        if(debt.CreditorId != request.UserId && debt.DebtorId != request.UserId)
+        if(debt.CreditorId != user.Id && debt.DebtorId != user.Id)
             return HandlerResult.Failure("User does not have access to this debt", ErrorCode.Unauthorized);
 
         using var transaction = await context.Database.BeginTransactionAsync(ct);
@@ -28,8 +33,8 @@ public class CreatePaymentHandler(
             {
                 Id = Guid.NewGuid(),
                 Amount = request.Amount,
-                PayerId = request.UserId,
-                ReceiverId = (debt.CreditorId == request.UserId) ? debt.DebtorId : debt.CreditorId,
+                PayerId = user.Id,
+                ReceiverId = (debt.CreditorId == user.Id) ? debt.DebtorId : debt.CreditorId,
                 Method = request.PaymentMethod,
                 Note = request.Note
             };
@@ -39,7 +44,7 @@ public class CreatePaymentHandler(
             {
                 Id = Guid.NewGuid(),
                 DebtId = debt.Id,
-                ActorId = request.UserId,
+                ActorId = user.Id,
                 EventType = LedgerEventType.Payment,
                 PaymentId = payment.Id,
                 InternalReference = LedgerEvent.GenReferenceNumber
@@ -59,7 +64,7 @@ public class CreatePaymentHandler(
             {
                 Id = Guid.NewGuid(),
                 DebtId = debt.Id,
-                ActorId = request.UserId,
+                ActorId = user.Id,
                 EventType = LedgerEventType.PaymentStatusChange,
                 PaymentStatusChangeId = statusChange.Id,
                 InternalReference = LedgerEvent.GenReferenceNumber
@@ -73,7 +78,7 @@ public class CreatePaymentHandler(
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Create payment error for {UserId}", request.UserId);
+            logger.LogError(exception, "Create payment error for {UserId}", user.Id);
 
             return HandlerResult.Failure("Technical error", ErrorCode.InternalError);
         }

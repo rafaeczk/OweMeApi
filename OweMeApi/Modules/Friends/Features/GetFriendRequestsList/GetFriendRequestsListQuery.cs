@@ -3,4 +3,4 @@ using OweMeApi.Common;
 
 namespace OweMeApi.Modules.Friends.Features.GetFriendRequestsList;
 
-public record GetFriendRequestsListQuery(Guid UserId) : IRequest<HandlerResult<List<FriendRequestDTO>>>;
+public record GetFriendRequestsListQuery : IRequest<HandlerResult<List<FriendRequestDTO>>>;
