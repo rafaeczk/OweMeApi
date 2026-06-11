@@ -17,7 +17,7 @@ namespace OweMeApi.Modules.Auth
         {
             var result = await _mediator.Send(new SignUpCommand(dto.Email, dto.FullName, dto.Password));
 
-            return result.ToActionResult();
+            return result.ToActionResult(HttpContext);
         }
 
         [HttpPost("sign-in")]
@@ -39,7 +39,7 @@ namespace OweMeApi.Modules.Auth
                 return Ok(token);
             }
 
-            return result.ToActionResult();
+            return result.ToActionResult(HttpContext);
         }
 
         [HttpDelete("log-out")]

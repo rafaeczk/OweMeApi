@@ -18,7 +18,7 @@ public class EditUserHandler(AppDbContext context) : IRequestHandler<EditUserCom
             return HandlerResult.Failure("Wrong RoleCode", ErrorCode.BadRequest);
 
         user.Email = request.Email;
-        user.FullName = request.Fullname;
+        user.FullName = request.FullName;
         user.RoleCode = request.RoleCode;
 
         await context.SaveChangesAsync(ct);

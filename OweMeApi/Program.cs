@@ -1,7 +1,10 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using OweMeApi.Contexts;
+using OweMeApi.Common;
+using OweMeApi.Contexts.IUserContext;
 using OweMeApi.Data;
 using OweMeApi.Extensions;
 using OweMeApi.Modules.Auth;
@@ -14,7 +17,7 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// SERVICES
+// CONFIG
 
 builder.Services.AddControllers();
 
@@ -53,6 +56,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+// SERVICES
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -67,7 +72,13 @@ builder.Services.AddScoped<FriendCodesService>();
 builder.Services.AddScoped<FriendsService>();
 builder.Services.AddScoped<DebtsService>();
 
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 builder.Services.AddCustomAuthorization();
+
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 // BUILD
 
@@ -85,6 +96,8 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
 

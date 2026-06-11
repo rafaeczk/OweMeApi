@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OweMeApi.Data;
-using OweMeApi.Data.Entities.Ledger;
+using OweMeApi.Modules.Debts.Domain.Enums;
 using OweMeApi.Modules.Debts.Features.GetDebt;
 
 namespace OweMeApi.Modules.Debts;
@@ -27,8 +27,8 @@ public class DebtsService(AppDbContext context)
             .Where(p => p != null)
             .Where(p => p!.StatusChanges
                 .OrderByDescending(sc => sc.LedgerEvent.Timestamp)
-                .Select(sc => (PaymentStatus?)sc.Status)
-                .FirstOrDefault() == PaymentStatus.Success)
+                .Select(sc => sc.Status)
+                .FirstOrDefault() == DebtPaymentStatus.Success)
             .Select(p =>
                 (p!.PayerId == p.LedgerEvent.Debt.CreditorId && p!.ReceiverId == p.LedgerEvent.Debt.DebtorId)
                     ? -p!.Amount

@@ -1,6 +1,4 @@
-﻿using OweMeApi.Data.Entities.Ledger;
-
-namespace OweMeApi.Modules.Debts.Features.GetDebtHistory;
+﻿namespace OweMeApi.Modules.Debts.Features.GetDebtHistory;
 
 public record DebtHistoryListItemAdjustmentDTO(
     Guid AdjustmentId, 
@@ -10,12 +8,12 @@ public record DebtHistoryListItemAdjustmentDTO(
 
 public record DebtHistoryListItemPaymentStatusChangeDTO(
     Guid StatusChangeId,
-    PaymentStatus Status,
+    string Status,
     string? Note);
 
 public record DebtHistoryListItemPaymentHistoryListItemDTO(
     Guid LedgerEventId,
-    LedgerEventType EventType,
+    string EventType,
     string InternalReference,
     DateTime Timestamp,
     Guid ActorId,
@@ -26,14 +24,14 @@ public record DebtHistoryListItemPaymentDTO(
     decimal Amount, 
     Guid PayerId, 
     Guid ReceiverId,
-    PaymentMethod Method, 
+    string Method, 
     string? Note,
-    PaymentStatus CurrentStatus,
+    string CurrentStatus,
     List<DebtHistoryListItemPaymentHistoryListItemDTO> StatusChanges);
 
 public record DebtHistoryListItemDTO(
     Guid LedgerEventId,
-    LedgerEventType EventType,
+    string EventType,
     string InternalReference,
     DateTime Timestamp,
     Guid ActorId,

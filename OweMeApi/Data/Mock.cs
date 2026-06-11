@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OweMeApi.Data.Entities;
+using OweMeApi.Modules.Users.Domain.Enums;
 
 namespace OweMeApi.Data;
 
@@ -25,7 +26,7 @@ public static class Mock
             Id = Guid.NewGuid(),
             Email = "a@gmail.com",
             FullName = "a",
-            RoleCode = "ADMIN",
+            RoleCode = SystemUserRole.Admin,
             Hash = BCrypt.Net.BCrypt.HashPassword("123")
         };
 
@@ -34,7 +35,7 @@ public static class Mock
             Id = Guid.NewGuid(),
             Email = "u1@gmail.com",
             FullName = "u1",
-            RoleCode = "USER",
+            RoleCode = SystemUserRole.User,
             Hash = BCrypt.Net.BCrypt.HashPassword("123")
         };
 
@@ -43,7 +44,7 @@ public static class Mock
             Id = Guid.NewGuid(),
             Email = "u2@gmail.com",
             FullName = "u2",
-            RoleCode = "USER",
+            RoleCode = SystemUserRole.User,
             Hash = BCrypt.Net.BCrypt.HashPassword("123")
         };
 
@@ -52,7 +53,7 @@ public static class Mock
             Id = Guid.NewGuid(),
             Email = "u3@gmail.com",
             FullName = "u3",
-            RoleCode = "USER",
+            RoleCode = SystemUserRole.User,
             Hash = BCrypt.Net.BCrypt.HashPassword("123")
         };
 

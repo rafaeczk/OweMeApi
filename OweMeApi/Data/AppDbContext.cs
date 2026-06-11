@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OweMeApi.Data.Entities;
 using OweMeApi.Data.Entities.Ledger;
+using OweMeApi.Modules.Users.Domain.Enums;
 
 namespace OweMeApi.Data;
 
@@ -28,7 +29,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         ConfigureFriendship(modelBuilder);
         ConfigureLedgerEvent(modelBuilder);
         ConfigureDebtPayment(modelBuilder);
-        ConfigureDebtPaymentStatusChange(modelBuilder);
         ConfigureDebtAdjustment(modelBuilder);
     }
 
@@ -49,10 +49,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     private static void ConfigureUserRole(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<UserRole>().HasData(
-            new UserRole { Code = "ADMIN", Label = "Administrator" },
-            new UserRole { Code = "MODERATOR", Label = "Moderator" },
-            new UserRole { Code = "USER", Label = "Użytkownik" },
-            new UserRole { Code = "LOCKED", Label = "Zablokowany" }
+            new UserRole { Code = SystemUserRole.Admin, Label = "Administrator" },
+            new UserRole { Code = SystemUserRole.Moderator, Label = "Moderator" },
+            new UserRole { Code = SystemUserRole.User, Label = "Użytkownik" },
+            new UserRole { Code = SystemUserRole.Locked, Label = "Zablokowany" }
         );
     }
 
@@ -98,9 +98,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
         modelBuilder.Entity<LedgerEvent>(entity =>
         {
-            entity.Property(e => e.EventType)
-                .HasConversion<string>();
-
             entity.HasIndex(e => e.InternalReference)
                 .IsUnique();
 
@@ -150,20 +147,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
         modelBuilder.Entity<DebtPayment>(entity =>
         {
-            entity.Property(e => e.Method)
-                .HasConversion<string>();
-
             entity.Property(e => e.Amount)
                 .HasPrecision(18, 2);
-        });
-    }
-
-    private static void ConfigureDebtPaymentStatusChange(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<DebtPaymentStatusChange>(entity =>
-        {
-            entity.Property(e => e.Status)
-                .HasConversion<string>();
         });
     }
 }

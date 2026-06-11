@@ -13,9 +13,8 @@ namespace OweMeApi.Modules.Users
 {
     [Route("api/users")]
     [ApiController]
-    public class UsersController(AppDbContext context, IMediator mediator) : ControllerBase
+    public class UsersController(IMediator mediator) : ControllerBase
     {
-        private readonly AppDbContext _context = context;
         private readonly IMediator _mediator = mediator;
 
         [HttpGet("me")]
@@ -24,7 +23,7 @@ namespace OweMeApi.Modules.Users
         {
             var result = await _mediator.Send(new GetMeQuery(User.Id()));
 
-            return result.ToActionResult();
+            return result.ToActionResult(HttpContext);
         }
 
         [HttpGet]
@@ -33,16 +32,16 @@ namespace OweMeApi.Modules.Users
         {
             var result = await _mediator.Send(new GetUsersQuery());
 
-            return result.ToActionResult();
+            return result.ToActionResult(HttpContext);
         }
 
         [HttpPut("{userId}")]
         [Authorize(Policy = "AdminOrModerator")]
         public async Task<ActionResult<UserDTO>> EditUser(Guid userId, [FromBody] EditUserDTO dto)
         {
-            var result = await _mediator.Send(new EditUserCommand(userId, dto.Email, dto.Fullname, dto.RoleCode));
+            var result = await _mediator.Send(new EditUserCommand(userId, dto.Email, dto.FullName, dto.RoleCode));
 
-            return result.ToActionResult();
+            return result.ToActionResult(HttpContext);
         }
 
         [HttpPut("{userId}/password")]
@@ -51,7 +50,7 @@ namespace OweMeApi.Modules.Users
         {
             var result = await _mediator.Send(new ChangeUserPasswordCommand(userId, dto.Password));
 
-            return result.ToActionResult();
+            return result.ToActionResult(HttpContext);
         }
     }
 }

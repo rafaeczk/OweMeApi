@@ -1,10 +1,11 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
-using OweMeApi.Contexts;
+using OweMeApi.Contexts.IUserContext;
 using OweMeApi.Data;
 using OweMeApi.Data.Entities.Ledger;
 using OweMeApi.Filters;
+using OweMeApi.Modules.Debts.Domain.Enums;
 
 namespace OweMeApi.Modules.Debts.Features.ChangeDebtApprovement;
 
@@ -34,7 +35,8 @@ public class ChangeDebtApprovementHandler(
             {
                 DebtId = request.DebtId,
                 ActorId = user.Id,
-                InternalReference = LedgerEvent.GenReferenceNumber
+                InternalReference = LedgerEvent.GenReferenceNumber,
+                EventType = string.Empty
             };
 
             var creditorApproves = await service.GetCreditorApproves(debt.Id, ct);

@@ -1,14 +1,16 @@
-﻿namespace OweMeApi.Extensions;
+﻿using OweMeApi.Modules.Users.Domain.Enums;
+
+namespace OweMeApi.Extensions;
 
 public static class AuthorizationExtensions
 {
     public static IServiceCollection AddCustomAuthorization(this IServiceCollection services)
     {
         services.AddAuthorizationBuilder()
-            .AddPolicy("Admin", policy => policy.RequireRole("ADMIN"))
-            .AddPolicy("AdminOrModerator", policy => policy.RequireRole("ADMIN", "MODERATOR"))
-            .AddPolicy("User", policy => policy.RequireRole("USER"))
-            .AddPolicy("All", policy => policy.RequireRole("USER", "ADMIN", "MODERATOR"));
+            .AddPolicy("Admin", policy => policy.RequireRole(SystemUserRole.Admin))
+            .AddPolicy("AdminOrModerator", policy => policy.RequireRole(SystemUserRole.Admin, SystemUserRole.Moderator))
+            .AddPolicy("User", policy => policy.RequireRole(SystemUserRole.User))
+            .AddPolicy("All", policy => policy.RequireRole(SystemUserRole.User, SystemUserRole.Admin, SystemUserRole.Moderator));
 
         return services;
     }

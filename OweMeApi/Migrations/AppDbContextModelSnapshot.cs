@@ -105,7 +105,8 @@ namespace OweMeApi.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("Note")
                         .IsRequired()
@@ -123,7 +124,8 @@ namespace OweMeApi.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("Method")
                         .IsRequired()
@@ -211,6 +213,9 @@ namespace OweMeApi.Migrations
 
                     b.HasIndex("DebtId");
 
+                    b.HasIndex("InternalReference")
+                        .IsUnique();
+
                     b.HasIndex("PaymentId")
                         .IsUnique();
 
@@ -267,22 +272,22 @@ namespace OweMeApi.Migrations
                     b.HasData(
                         new
                         {
-                            Code = "ADMIN",
+                            Code = "Admin",
                             Label = "Administrator"
                         },
                         new
                         {
-                            Code = "MODERATOR",
+                            Code = "Moderator",
                             Label = "Moderator"
                         },
                         new
                         {
-                            Code = "USER",
+                            Code = "User",
                             Label = "Użytkownik"
                         },
                         new
                         {
-                            Code = "LOCKED",
+                            Code = "Locked",
                             Label = "Zablokowany"
                         });
                 });

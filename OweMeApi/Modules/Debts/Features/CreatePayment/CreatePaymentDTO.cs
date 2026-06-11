@@ -2,4 +2,4 @@
 
 namespace OweMeApi.Modules.Debts.Features.CreatePayment;
 
-public record CreatePaymentDTO(Guid DebtId, decimal Amount, string? Note, PaymentMethod PaymentMethod);
+public record CreatePaymentDTO(Guid DebtId, decimal Amount, string? Note, string PaymentMethod);

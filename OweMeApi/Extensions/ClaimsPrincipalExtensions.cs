@@ -9,7 +9,7 @@ namespace OweMeApi.Extensions
             var userIdString = user.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId))
-                throw new UnauthorizedAccessException("User is not signed in or there is no user id");
+                throw new UnauthorizedAccessException("HTTP Context is missing in Headers or user is unauthorized.");
 
             return userId;
         }
@@ -19,7 +19,7 @@ namespace OweMeApi.Extensions
             var userRole = user.FindFirstValue(ClaimTypes.Role);
 
             if (string.IsNullOrEmpty(userRole))
-                throw new UnauthorizedAccessException("User is not signed in or there is no user role");
+                throw new UnauthorizedAccessException("HTTP Context is missing in Headers or user is unauthorized.");
 
             return userRole;
         }

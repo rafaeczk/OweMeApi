@@ -1,16 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 
 namespace OweMeApi.Data.Entities.Ledger;
-
-[JsonConverter(typeof(JsonStringEnumConverter))]
-public enum LedgerEventType
-{
-    Adjustment, 
-    Payment, PaymentStatusChange,
-    CreditorDebtApprovement, CreditorDebtDisapprovement, DebtorDebtApprovement, DebtorDebtDisapprovement,
-    DebtSettlement
-}
 
 public class LedgerEvent
 {
@@ -20,7 +10,7 @@ public class LedgerEvent
     public Guid DebtId { get; set; }
     public Debt Debt { get; set; } = null!;
 
-    public LedgerEventType EventType { get; set; }
+    public required string EventType { get; set; }
 
     public required string InternalReference { get; set; }
 

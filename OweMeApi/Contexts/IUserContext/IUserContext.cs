@@ -1,4 +1,4 @@
-﻿namespace OweMeApi.Contexts;
+﻿namespace OweMeApi.Contexts.IUserContext;
 
 public interface IUserContext
 {

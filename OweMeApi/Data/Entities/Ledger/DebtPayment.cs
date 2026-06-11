@@ -1,13 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 
 namespace OweMeApi.Data.Entities.Ledger;
-
-[JsonConverter(typeof(JsonStringEnumConverter))]
-public enum PaymentMethod
-{
-    Cash, Transfer
-}
 
 public class DebtPayment
 {
@@ -26,7 +19,7 @@ public class DebtPayment
     public Guid ReceiverId { get; set; }
     public User Receiver { get; set; } = null!;
 
-    public PaymentMethod Method { get; set; }
+    public required string Method { get; set; }
 
     public string? Note { get; set; }
 }

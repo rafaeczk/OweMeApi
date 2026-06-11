@@ -25,21 +25,31 @@ public class HandlerResult
     public static HandlerResult Success() => new(true, null, ErrorCode.None);
     public static HandlerFailureResult Failure(string error, ErrorCode errorCode) => new(error, errorCode);
 
-    protected ActionResult CreateActionResult(object? value)
+    protected ActionResult CreateActionResult(object? value, HttpContext httpContext)
     {
         if (IsSuccess) return value != null ? new OkObjectResult(value) : new OkResult();
 
-        return ErrorCode switch
+        var problemDetails = new ProblemDetails
         {
-            ErrorCode.NotFound => new NotFoundObjectResult(Error),
-            ErrorCode.BadRequest => new BadRequestObjectResult(Error),
-            ErrorCode.Conflict => new ConflictObjectResult(Error),
-            ErrorCode.Unauthorized => new UnauthorizedObjectResult(Error),
-            _ => new BadRequestObjectResult(Error)
+            Title = Error,
+            Status = ErrorCode switch
+            {
+                ErrorCode.NotFound => StatusCodes.Status404NotFound,
+                ErrorCode.BadRequest => StatusCodes.Status400BadRequest,
+                ErrorCode.Conflict => StatusCodes.Status409Conflict,
+                ErrorCode.Unauthorized => StatusCodes.Status401Unauthorized,
+                _ => StatusCodes.Status400BadRequest
+            },
         };
+
+        var traceId = httpContext.TraceIdentifier;
+
+        problemDetails.Extensions.Add("traceId", httpContext.TraceIdentifier);
+
+        return new ObjectResult(problemDetails) { StatusCode = problemDetails.Status };
     }
 
-    public virtual ActionResult ToActionResult() => CreateActionResult(null);
+    public virtual ActionResult ToActionResult(HttpContext httpContext) => CreateActionResult(null, httpContext);
 }
 
 public class HandlerResult<T> : HandlerResult
@@ -61,7 +71,7 @@ public class HandlerResult<T> : HandlerResult
 
     public static HandlerResult<T> Success(T value) => new(value);
 
-    public override ActionResult ToActionResult() => CreateActionResult(Value);
+    public override ActionResult ToActionResult(HttpContext httpContext) => CreateActionResult(Value, httpContext);
 }
 
 public class HandlerFailureResult(string error, ErrorCode errorCode)

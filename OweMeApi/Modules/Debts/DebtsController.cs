@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using OweMeApi.Extensions;
 using OweMeApi.Modules.Debts.Features.CreateDebt;
 using OweMeApi.Modules.Debts.Features.GetDebts;
 using OweMeApi.Modules.Debts.Features.GetDebt;
@@ -43,7 +42,7 @@ public class DebtsController(IMediator mediator) : ControllerBase
 
         var result = await _mediator.Send(new GetDebtsQuery(userRoleInDebt, debtState));
 
-        return result.ToActionResult();
+        return result.ToActionResult(HttpContext);
     }
 
     [HttpGet("{debtId}")]
@@ -52,7 +51,7 @@ public class DebtsController(IMediator mediator) : ControllerBase
     {
         var result = await _mediator.Send(new GetDebtQuery(debtId));
 
-        return result.ToActionResult();
+        return result.ToActionResult(HttpContext);
     }
 
     [HttpPost]
@@ -61,7 +60,7 @@ public class DebtsController(IMediator mediator) : ControllerBase
     {
         var result = await _mediator.Send(new CreateDebtCommand(dto.DebtorId, dto.Title, dto.Description, dto.Amount));
 
-        return result.ToActionResult();
+        return result.ToActionResult(HttpContext);
     }
 
     [HttpPut("{debtId}")]
@@ -70,7 +69,7 @@ public class DebtsController(IMediator mediator) : ControllerBase
     {
         var result = await _mediator.Send(new EditDebtInformationCommand(debtId, dto.Title, dto.Description));
 
-        return result.ToActionResult();
+        return result.ToActionResult(HttpContext);
     }
 
     [HttpPost("create-payment")]
@@ -79,7 +78,7 @@ public class DebtsController(IMediator mediator) : ControllerBase
     {
         var result = await _mediator.Send(new CreatePaymentCommand(dto.DebtId, dto.Amount, dto.Note, dto.PaymentMethod));
 
-        return result.ToActionResult();
+        return result.ToActionResult(HttpContext);
     }
 
     [HttpPatch("verify-cash-payment")]
@@ -88,7 +87,7 @@ public class DebtsController(IMediator mediator) : ControllerBase
     {
         var result = await _mediator.Send(new VerifyCashPaymentCommand(dto.PaymentId, dto.Status, dto.Note));
 
-        return result.ToActionResult();
+        return result.ToActionResult(HttpContext);
     }
 
     [HttpGet("{debtId}/history")]
@@ -97,7 +96,7 @@ public class DebtsController(IMediator mediator) : ControllerBase
     {
         var result = await _mediator.Send(new GetDebtHistoryQuery(debtId));
 
-        return result.ToActionResult();
+        return result.ToActionResult(HttpContext);
     }
 
     [HttpPatch("{debtId}/change-amount")]
@@ -106,7 +105,7 @@ public class DebtsController(IMediator mediator) : ControllerBase
     {
         var result = await _mediator.Send(new ChangeDebtAmountCommand(debtId, dto.Amount, dto.Note));
 
-        return result.ToActionResult();
+        return result.ToActionResult(HttpContext);
     }
 
     [HttpPatch("{debtId}/approvement")]
@@ -115,6 +114,6 @@ public class DebtsController(IMediator mediator) : ControllerBase
     {
         var result = await _mediator.Send(new ChangeDebtApprovementCommand(debtId, dto.Approve));
 
-        return result.ToActionResult();
+        return result.ToActionResult(HttpContext);
     }
 }

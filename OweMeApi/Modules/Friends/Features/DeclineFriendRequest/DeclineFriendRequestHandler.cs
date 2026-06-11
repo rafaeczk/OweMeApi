@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
-using OweMeApi.Contexts;
+using OweMeApi.Contexts.IUserContext;
 using OweMeApi.Data;
 
 namespace OweMeApi.Modules.Friends.Features.DeclineFriendRequest;

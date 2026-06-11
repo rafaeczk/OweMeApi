@@ -1,10 +1,11 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
-using OweMeApi.Contexts;
+using OweMeApi.Contexts.IUserContext;
 using OweMeApi.Data;
 using OweMeApi.Data.Entities.Ledger;
 using OweMeApi.Filters;
+using OweMeApi.Modules.Debts.Domain.Enums;
 
 namespace OweMeApi.Modules.Debts.Features.CreatePayment;
 
@@ -56,7 +57,7 @@ public class CreatePaymentHandler(
                 Id = Guid.NewGuid(),
                 Note = "Init status",
                 PaymentId = payment.Id,
-                Status = PaymentStatus.Pending
+                Status = DebtPaymentStatus.Pending
             };
             context.DebtPaymentStatusChanges.Add(statusChange);
 

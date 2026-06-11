@@ -1,10 +1,11 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
-using OweMeApi.Contexts;
+using OweMeApi.Contexts.IUserContext;
 using OweMeApi.Data;
 using OweMeApi.Data.Entities.Ledger;
 using OweMeApi.Filters;
+using OweMeApi.Modules.Debts.Domain.Enums;
 
 namespace OweMeApi.Modules.Debts.Features.VerifyCashPayment;
 
@@ -16,7 +17,7 @@ public class VerifyCashPaymentHandler(
     public async Task<HandlerResult> Handle(VerifyCashPaymentCommand request, CancellationToken ct)
     {
         var payment = await context.DebtPayments
-            .DebtPaymentPayerOnly(user)
+            .DebtPaymentReceiverOnly(user)
             .Include(p => p.LedgerEvent)
             .FirstOrDefaultAsync(p => p.Id == request.PaymentId, ct);
 
@@ -29,7 +30,7 @@ public class VerifyCashPaymentHandler(
             .Select(psc => psc.Status)
             .FirstOrDefaultAsync(ct);
 
-        if (currentPaymentStatus != PaymentStatus.Pending)
+        if (currentPaymentStatus != DebtPaymentStatus.Pending)
             return HandlerResult.Failure("You have already verified this cash payment", ErrorCode.BadRequest);
 
         using var transaction = await context.Database.BeginTransactionAsync(ct);

@@ -1,8 +1,9 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
-using OweMeApi.Contexts;
+using OweMeApi.Contexts.IUserContext;
 using OweMeApi.Data;
+using OweMeApi.Modules.Friends.Features._Shared;
 
 namespace OweMeApi.Modules.Friends.Features.AddFriendByCode;
 

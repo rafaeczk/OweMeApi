@@ -1,5 +1,6 @@
-﻿using OweMeApi.Contexts;
+﻿using OweMeApi.Contexts.IUserContext;
 using OweMeApi.Data.Entities.Ledger;
+using OweMeApi.Modules.Users.Domain.Enums;
 
 namespace OweMeApi.Filters;
 
@@ -10,9 +11,9 @@ public static class DebtPaymentFilters
     {
         switch (user.Role)
         {
-            case "ADMIN":
+            case SystemUserRole.Admin:
                 return query;
-            case "USER":
+            case SystemUserRole.User:
                 return query.Where(p => p.PayerId == user.Id);
             default:
                 break;
@@ -26,9 +27,9 @@ public static class DebtPaymentFilters
     {
         switch (user.Role)
         {
-            case "ADMIN":
+            case SystemUserRole.Admin:
                 return query;
-            case "USER":
+            case SystemUserRole.User:
                 return query.Where(p => p.ReceiverId == user.Id);
             default:
                 break;

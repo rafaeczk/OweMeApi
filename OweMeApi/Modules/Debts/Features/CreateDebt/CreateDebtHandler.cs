@@ -1,9 +1,10 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
-using OweMeApi.Contexts;
+using OweMeApi.Contexts.IUserContext;
 using OweMeApi.Data;
 using OweMeApi.Data.Entities.Ledger;
+using OweMeApi.Modules.Debts.Domain.Enums;
 
 namespace OweMeApi.Modules.Debts.Features.CreateDebt;
 

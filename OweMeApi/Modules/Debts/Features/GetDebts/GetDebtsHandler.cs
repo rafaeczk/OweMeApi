@@ -1,10 +1,11 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
-using OweMeApi.Contexts;
+using OweMeApi.Contexts.IUserContext;
 using OweMeApi.Data;
 using OweMeApi.Data.Entities.Ledger;
 using OweMeApi.Filters;
+using OweMeApi.Modules.Debts.Domain.Enums;
 
 namespace OweMeApi.Modules.Debts.Features.GetDebts;
 
@@ -64,8 +65,8 @@ public class GetDebtsHandler(
                     .Where(p => p != null)
                     .Where(p => p!.StatusChanges
                         .OrderByDescending(sc => sc.LedgerEvent.Timestamp)
-                        .Select(sc => (PaymentStatus?)sc.Status)
-                        .FirstOrDefault() == PaymentStatus.Success)
+                        .Select(sc => sc.Status)
+                        .FirstOrDefault() == DebtPaymentStatus.Success)
                     .Select(p =>
                         (p!.PayerId == d.CreditorId && p!.ReceiverId == d.DebtorId)
                             ? -p!.Amount

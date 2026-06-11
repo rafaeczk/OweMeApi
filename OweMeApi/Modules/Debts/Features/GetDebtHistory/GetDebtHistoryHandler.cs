@@ -1,10 +1,10 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
-using OweMeApi.Contexts;
+using OweMeApi.Contexts.IUserContext;
 using OweMeApi.Data;
-using OweMeApi.Data.Entities.Ledger;
 using OweMeApi.Filters;
+using OweMeApi.Modules.Debts.Domain.Enums;
 
 namespace OweMeApi.Modules.Debts.Features.GetDebtHistory;
 
@@ -12,7 +12,7 @@ public class GetDebtHistoryHandler(
     AppDbContext context,
     IUserContext user) : IRequestHandler<GetDebtHistoryQuery, HandlerResult<List<DebtHistoryListItemDTO>>>
 {
-    private readonly List<LedgerEventType> allowedEventTypes =
+    private readonly List<string> allowedEventTypes =
     [
         LedgerEventType.Payment,
         LedgerEventType.Adjustment,
