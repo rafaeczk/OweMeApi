@@ -23,7 +23,7 @@ namespace OweMeApi.Modules.Users
         {
             var result = await _mediator.Send(new GetMeQuery(User.Id()));
 
-            return result.ToActionResult(HttpContext);
+            return result.ToActionResult();
         }
 
         [HttpGet]
@@ -32,7 +32,7 @@ namespace OweMeApi.Modules.Users
         {
             var result = await _mediator.Send(new GetUsersQuery());
 
-            return result.ToActionResult(HttpContext);
+            return result.ToActionResult();
         }
 
         [HttpPut("{userId}")]
@@ -41,7 +41,7 @@ namespace OweMeApi.Modules.Users
         {
             var result = await _mediator.Send(new EditUserCommand(userId, dto.Email, dto.FullName, dto.RoleCode));
 
-            return result.ToActionResult(HttpContext);
+            return result.ToActionResult();
         }
 
         [HttpPut("{userId}/password")]
@@ -50,7 +50,7 @@ namespace OweMeApi.Modules.Users
         {
             var result = await _mediator.Send(new ChangeUserPasswordCommand(userId, dto.Password));
 
-            return result.ToActionResult(HttpContext);
+            return result.ToActionResult();
         }
     }
 }

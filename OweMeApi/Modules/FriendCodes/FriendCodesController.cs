@@ -18,6 +18,6 @@ public class FriendCodesController(IMediator mediator) : ControllerBase
     {
         var result = await _mediator.Send(new GenerateMyCodeCommand(User.Id()));
 
-        return result.ToActionResult(HttpContext);
+        return result.ToActionResult();
     }
 }

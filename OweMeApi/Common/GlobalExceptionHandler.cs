@@ -7,16 +7,26 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken ct)
     {
-        logger.LogError(exception, "Unexpected error occured: {Message}", exception.Message);
-
-        var problemDetails = new ProblemDetails
+        var problemDetails = exception switch
         {
-            Status = StatusCodes.Status500InternalServerError,
-            Title = "Unexpected error occured.",
-            Extensions = new Dictionary<string, object?> { }
+            ApiException e => new ProblemDetails
+            {
+                Status = e.StatusCode,
+                Title = e.Message,
+                Extensions = e.Extensions ?? []
+            },
+            _ => new ProblemDetails
+            {
+                Status = StatusCodes.Status500InternalServerError,
+                Title = "Unexpected error occured"
+            }
         };
 
-        problemDetails.Extensions.Add("traceId", httpContext.TraceIdentifier);
+        var traceId = httpContext.TraceIdentifier;
+
+        problemDetails.Extensions.Add("traceId", traceId);
+
+        logger.LogError(exception, "Error: {Message}, TraceId: {TraceId}", problemDetails.Title, traceId);
 
         httpContext.Response.StatusCode = problemDetails.Status!.Value;
         await httpContext.Response.WriteAsJsonAsync(problemDetails, ct);

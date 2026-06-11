@@ -23,7 +23,7 @@ namespace OweMeApi.Modules.Friends
         {
             var result = await _mediator.Send(new GetFriendsListQuery());
 
-            return result.ToActionResult(HttpContext);
+            return result.ToActionResult();
         }
 
         [Authorize(Policy = "User")]
@@ -32,7 +32,7 @@ namespace OweMeApi.Modules.Friends
         {
             var result = await _mediator.Send(new GetFriendRequestsListQuery());
 
-            return result.ToActionResult(HttpContext);
+            return result.ToActionResult();
         }
 
         [Authorize(Policy = "User")]
@@ -41,7 +41,7 @@ namespace OweMeApi.Modules.Friends
         {
             var result = await _mediator.Send(new AcceptFriendRequestCommand(dto.FriendId));
 
-            return result.ToActionResult(HttpContext);
+            return result.ToActionResult();
         }
 
         [Authorize(Policy = "User")]
@@ -50,7 +50,7 @@ namespace OweMeApi.Modules.Friends
         {
             var result = await _mediator.Send(new DeclineFriendRequestCommand(dto.FriendId));
 
-            return result.ToActionResult(HttpContext);
+            return result.ToActionResult();
         }
 
         [Authorize(Policy = "User")]
@@ -59,7 +59,7 @@ namespace OweMeApi.Modules.Friends
         {
             var result = await _mediator.Send(new AddFriendByCodeCommand(dto.Code));
 
-            return result.ToActionResult(HttpContext);
+            return result.ToActionResult();
         }
 
         [Authorize(Policy = "User")]
@@ -68,7 +68,7 @@ namespace OweMeApi.Modules.Friends
         {
             var result = await _mediator.Send(new RequestFriendByUserIdCommand(dto.FriendId));
 
-            return result.ToActionResult(HttpContext);
+            return result.ToActionResult();
         }
     }
 }

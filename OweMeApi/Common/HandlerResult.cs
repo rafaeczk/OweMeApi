@@ -25,31 +25,23 @@ public class HandlerResult
     public static HandlerResult Success() => new(true, null, ErrorCode.None);
     public static HandlerFailureResult Failure(string error, ErrorCode errorCode) => new(error, errorCode);
 
-    protected ActionResult CreateActionResult(object? value, HttpContext httpContext)
+    protected ActionResult CreateActionResult(object? value)
     {
         if (IsSuccess) return value != null ? new OkObjectResult(value) : new OkResult();
 
-        var problemDetails = new ProblemDetails
-        {
-            Title = Error,
-            Status = ErrorCode switch
+        throw new ApiException(
+            Error ?? "Unexpected error occured",
+            ErrorCode switch
             {
                 ErrorCode.NotFound => StatusCodes.Status404NotFound,
                 ErrorCode.BadRequest => StatusCodes.Status400BadRequest,
                 ErrorCode.Conflict => StatusCodes.Status409Conflict,
                 ErrorCode.Unauthorized => StatusCodes.Status401Unauthorized,
                 _ => StatusCodes.Status400BadRequest
-            },
-        };
-
-        var traceId = httpContext.TraceIdentifier;
-
-        problemDetails.Extensions.Add("traceId", httpContext.TraceIdentifier);
-
-        return new ObjectResult(problemDetails) { StatusCode = problemDetails.Status };
+            });
     }
 
-    public virtual ActionResult ToActionResult(HttpContext httpContext) => CreateActionResult(null, httpContext);
+    public virtual ActionResult ToActionResult() => CreateActionResult(null);
 }
 
 public class HandlerResult<T> : HandlerResult
@@ -71,7 +63,7 @@ public class HandlerResult<T> : HandlerResult
 
     public static HandlerResult<T> Success(T value) => new(value);
 
-    public override ActionResult ToActionResult(HttpContext httpContext) => CreateActionResult(Value, httpContext);
+    public override ActionResult ToActionResult() => CreateActionResult(Value);
 }
 
 public class HandlerFailureResult(string error, ErrorCode errorCode)
