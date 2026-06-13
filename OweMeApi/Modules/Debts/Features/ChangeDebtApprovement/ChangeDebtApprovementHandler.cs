@@ -4,8 +4,8 @@ using OweMeApi.Common;
 using OweMeApi.Contexts.IUserContext;
 using OweMeApi.Data;
 using OweMeApi.Data.Entities.Ledger;
-using OweMeApi.Filters;
 using OweMeApi.Modules.Debts.Domain.Enums;
+using OweMeApi.Modules.Debts.Filters;
 
 namespace OweMeApi.Modules.Debts.Features.ChangeDebtApprovement;
 
@@ -24,8 +24,11 @@ public class ChangeDebtApprovementHandler(
         if (debt == null)
             return HandlerResult.Failure("Debt not found", ErrorCode.NotFound);
 
-        if (await CheckIsSettled(debt.Id))
+        if (await service.GetDebtIsSettled(debt.Id, ct))
             return HandlerResult.Failure("Debt is settled", ErrorCode.BadRequest);
+
+        if (await service.GetDebtHasPendingPayments(debt.Id, ct))
+            return HandlerResult.Failure("Debt has pending payments", ErrorCode.BadRequest);
 
         using var transaction = await context.Database.BeginTransactionAsync(ct);
 
@@ -98,10 +101,5 @@ public class ChangeDebtApprovementHandler(
 
             return HandlerResult.Failure("Technical error", ErrorCode.InternalError);
         }
-    }
-
-    private async Task<bool> CheckIsSettled(Guid debtId)
-    {
-        return await context.LedgerEvents.Where(e => e.DebtId == debtId && e.EventType == LedgerEventType.DebtSettlement).AnyAsync();
     }
 }

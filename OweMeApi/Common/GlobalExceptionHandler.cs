@@ -13,7 +13,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
             {
                 Status = e.StatusCode,
                 Title = e.Message,
-                Extensions = e.Extensions ?? []
+                Extensions = { { "errors", e.Errors } }
             },
             _ => new ProblemDetails
             {

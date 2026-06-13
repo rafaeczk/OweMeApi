@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
 using OweMeApi.Contexts.IUserContext;
 using OweMeApi.Data;
-using OweMeApi.Filters;
+using OweMeApi.Modules.Debts.Filters;
 
 namespace OweMeApi.Modules.Debts.Features.EditDebtInformation;
 

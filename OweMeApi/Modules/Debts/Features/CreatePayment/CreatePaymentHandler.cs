@@ -4,8 +4,8 @@ using OweMeApi.Common;
 using OweMeApi.Contexts.IUserContext;
 using OweMeApi.Data;
 using OweMeApi.Data.Entities.Ledger;
-using OweMeApi.Filters;
 using OweMeApi.Modules.Debts.Domain.Enums;
+using OweMeApi.Modules.Debts.Filters;
 
 namespace OweMeApi.Modules.Debts.Features.CreatePayment;
 
@@ -22,9 +22,6 @@ public class CreatePaymentHandler(
 
         if (debt == null)
             return HandlerResult.Failure("Debt not found", ErrorCode.NotFound);
-
-        if(debt.CreditorId != user.Id && debt.DebtorId != user.Id)
-            return HandlerResult.Failure("User does not have access to this debt", ErrorCode.Unauthorized);
 
         using var transaction = await context.Database.BeginTransactionAsync(ct);
 

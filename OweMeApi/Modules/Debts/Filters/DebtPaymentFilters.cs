@@ -2,7 +2,7 @@
 using OweMeApi.Data.Entities.Ledger;
 using OweMeApi.Modules.Users.Domain.Enums;
 
-namespace OweMeApi.Filters;
+namespace OweMeApi.Modules.Debts.Filters;
 
 public static class DebtPaymentFilters
 {

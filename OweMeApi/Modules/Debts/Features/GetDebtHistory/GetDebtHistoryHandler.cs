@@ -3,8 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
 using OweMeApi.Contexts.IUserContext;
 using OweMeApi.Data;
-using OweMeApi.Filters;
 using OweMeApi.Modules.Debts.Domain.Enums;
+using OweMeApi.Modules.Debts.Filters;
 
 namespace OweMeApi.Modules.Debts.Features.GetDebtHistory;
 
@@ -30,7 +30,7 @@ public class GetDebtHistoryHandler(
         if (!await debtQuery.AnyAsync(ct))
             return HandlerResult.Failure("Debt not found", ErrorCode.NotFound);
 
-        var debtEventsQuery = await debtQuery
+        var debtEvents = await debtQuery
             .SelectMany(d => d.LedgerEvents)
             .Where(e => allowedEventTypes.Contains(e.EventType))
             .OrderBy(e => e.Timestamp)
@@ -40,7 +40,7 @@ public class GetDebtHistoryHandler(
                     .ThenInclude(sc => sc.LedgerEvent)
             .ToListAsync(ct);
 
-        return debtEventsQuery.Select(e =>
+        return debtEvents.Select(e =>
         {
             var statusChanges = e.Payment?.StatusChanges.OrderBy(sc => sc.LedgerEvent.Timestamp);
 

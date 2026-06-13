@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OweMeApi.Data;
+using OweMeApi.Data.Entities.Ledger;
 using OweMeApi.Modules.Debts.Domain.Enums;
 using OweMeApi.Modules.Debts.Features.GetDebt;
 
@@ -76,5 +77,15 @@ public class DebtsService(AppDbContext context)
     {
         return await _context.LedgerEvents
             .AnyAsync(e => e.DebtId == debtId && e.EventType == LedgerEventType.DebtSettlement, ct);
+    }
+
+    public async Task<bool> GetDebtHasPendingPayments(Guid debtId, CancellationToken ct)
+    {
+        return await context.DebtPayments
+            .Where(p => p.LedgerEvent.DebtId == debtId)
+            .AnyAsync(p => p.StatusChanges
+                .OrderByDescending(sc => sc.LedgerEvent.Timestamp)
+                .Take(1)
+                .Any(sc => sc.Status == DebtPaymentStatus.Pending), ct);
     }
 }

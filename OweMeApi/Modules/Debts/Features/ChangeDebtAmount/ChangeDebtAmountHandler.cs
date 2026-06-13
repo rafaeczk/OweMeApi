@@ -4,20 +4,28 @@ using OweMeApi.Common;
 using OweMeApi.Contexts.IUserContext;
 using OweMeApi.Data;
 using OweMeApi.Data.Entities.Ledger;
-using OweMeApi.Filters;
 using OweMeApi.Modules.Debts.Domain.Enums;
+using OweMeApi.Modules.Debts.Filters;
 
 namespace OweMeApi.Modules.Debts.Features.ChangeDebtAmount;
 
 public class ChangeDebtAmountHandler(
     AppDbContext context,
+    DebtsService service,
     IUserContext user,
     ILogger<ChangeDebtAmountHandler> logger) : IRequestHandler<ChangeDebtAmountCommand, HandlerResult>
 {
     public async Task<HandlerResult> Handle(ChangeDebtAmountCommand request, CancellationToken ct)
     {
-        if (!await context.Debts.DebtCreditorOnly(user).AnyAsync(d => d.Id == request.DebtId, ct))
+        var debt = await context.Debts
+            .DebtCreditorOnly(user)
+            .FirstOrDefaultAsync(d => d.Id == request.DebtId, ct);
+
+        if (debt == null)
             return HandlerResult.Failure("Debt not found", ErrorCode.NotFound);
+
+        if (await service.GetDebtIsSettled(debt.Id, ct))
+            return HandlerResult.Failure("Debt is settled", ErrorCode.BadRequest);
 
         using var transaction = await context.Database.BeginTransactionAsync(ct);
 

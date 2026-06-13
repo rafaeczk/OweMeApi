@@ -1,8 +1,9 @@
 ﻿using OweMeApi.Contexts.IUserContext;
 using OweMeApi.Data.Entities.Ledger;
+using OweMeApi.Modules.Debts.Domain.Enums;
 using OweMeApi.Modules.Users.Domain.Enums;
 
-namespace OweMeApi.Filters;
+namespace OweMeApi.Modules.Debts.Filters;
 
 public static class DebtFilters
 {
@@ -53,4 +54,8 @@ public static class DebtFilters
 
         return query.Where(d => false);
     }
+
+    public static IQueryable<T> DebtUnsettled<T>(this IQueryable<T> query)
+        where T : Debt => 
+        query.Where(d => !d.LedgerEvents.Any(e => e.EventType == LedgerEventType.DebtSettlement));
 }
