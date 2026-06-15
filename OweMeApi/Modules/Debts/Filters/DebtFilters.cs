@@ -12,9 +12,9 @@ public static class DebtFilters
     {
         switch (user.Role)
         {
-            case SystemUserRole.Admin:
+            case UserRole.Admin:
                 return query;
-            case SystemUserRole.User:
+            case UserRole.User:
                 return query.Where(d => d.CreditorId == user.Id || d.DebtorId == user.Id);
             default:
                 break;
@@ -28,9 +28,9 @@ public static class DebtFilters
     {
         switch (user.Role)
         {
-            case SystemUserRole.Admin:
+            case UserRole.Admin:
                 return query;
-            case SystemUserRole.User:
+            case UserRole.User:
                 return query.Where(d => d.CreditorId == user.Id);
             default:
                 break;
@@ -44,9 +44,9 @@ public static class DebtFilters
     {
         switch (user.Role)
         {
-            case SystemUserRole.Admin:
+            case UserRole.Admin:
                 return query;
-            case SystemUserRole.User:
+            case UserRole.User:
                 return query.Where(d => d.DebtorId == user.Id);
             default:
                 break;

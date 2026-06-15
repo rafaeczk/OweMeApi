@@ -1,14 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OweMeApi.Data.Entities;
 using OweMeApi.Data.Entities.Ledger;
-using OweMeApi.Modules.Users.Domain.Enums;
 
 namespace OweMeApi.Data;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
     public DbSet<User> Users => Set<User>();
-    public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<FriendCode> FriendCodes => Set<FriendCode>();
     public DbSet<Friendship> Friendships => Set<Friendship>();
 
@@ -23,37 +21,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
         base.OnModelCreating(modelBuilder);
 
-        ConfigureUser(modelBuilder);
-        ConfigureUserRole(modelBuilder);
         ConfigureFriendCode(modelBuilder);
         ConfigureFriendship(modelBuilder);
         ConfigureLedgerEvent(modelBuilder);
         ConfigureDebtPayment(modelBuilder);
         ConfigureDebtAdjustment(modelBuilder);
-    }
-
-    private static void ConfigureUser(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<User>(entity =>
-        {
-            entity.Property(u => u.Id)
-                  .HasDefaultValueSql("gen_random_uuid()");
-
-            entity.HasOne(u => u.Role)
-                  .WithMany()
-                  .HasForeignKey(u => u.RoleCode)
-                  .IsRequired();
-        });
-    }
-
-    private static void ConfigureUserRole(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<UserRole>().HasData(
-            new UserRole { Code = SystemUserRole.Admin, Label = "Administrator" },
-            new UserRole { Code = SystemUserRole.Moderator, Label = "Moderator" },
-            new UserRole { Code = SystemUserRole.User, Label = "Użytkownik" },
-            new UserRole { Code = SystemUserRole.Locked, Label = "Zablokowany" }
-        );
     }
 
     private static void ConfigureFriendCode(ModelBuilder modelBuilder)

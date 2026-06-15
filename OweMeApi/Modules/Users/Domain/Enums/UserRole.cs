@@ -1,6 +1,6 @@
 ﻿namespace OweMeApi.Modules.Users.Domain.Enums;
 
-public static class SystemUserRole
+public static class UserRole
 {
     public const string Admin = "Admin";
     public const string Moderator = "Moderator";

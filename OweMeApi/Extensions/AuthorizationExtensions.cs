@@ -7,10 +7,10 @@ public static class AuthorizationExtensions
     public static IServiceCollection AddCustomAuthorization(this IServiceCollection services)
     {
         services.AddAuthorizationBuilder()
-            .AddPolicy("Admin", policy => policy.RequireRole(SystemUserRole.Admin))
-            .AddPolicy("AdminOrModerator", policy => policy.RequireRole(SystemUserRole.Admin, SystemUserRole.Moderator))
-            .AddPolicy("User", policy => policy.RequireRole(SystemUserRole.User))
-            .AddPolicy("All", policy => policy.RequireRole(SystemUserRole.User, SystemUserRole.Admin, SystemUserRole.Moderator));
+            .AddPolicy("Admin", policy => policy.RequireRole(UserRole.Admin))
+            .AddPolicy("AdminOrModerator", policy => policy.RequireRole(UserRole.Admin, UserRole.Moderator))
+            .AddPolicy("User", policy => policy.RequireRole(UserRole.User))
+            .AddPolicy("All", policy => policy.RequireRole(UserRole.User, UserRole.Admin, UserRole.Moderator));
 
         return services;
     }

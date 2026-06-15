@@ -1,8 +1,6 @@
 ﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
 using OweMeApi.Common;
 using OweMeApi.Data;
-using OweMeApi.Modules.UserRoles.Dtos;
 
 namespace OweMeApi.Modules.Users.Features.GetMe;
 
@@ -11,8 +9,7 @@ public class GetMeHandler(AppDbContext context) : IRequestHandler<GetMeQuery, Ha
     public async Task<HandlerResult<UserDTO>> Handle(GetMeQuery request, CancellationToken ct)
     {
         var user = await context.Users
-            .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.Id == request.UserId, ct);
+            .FindAsync([ request.UserId, ct ], ct);
 
         if (user == null)
             return HandlerResult.Failure("User not found", ErrorCode.NotFound);
@@ -21,7 +18,7 @@ public class GetMeHandler(AppDbContext context) : IRequestHandler<GetMeQuery, Ha
             user.Id,
             user.Email,
             user.FullName,
-            new UserRoleDTO(user.RoleCode, user.Role!.Label)
+            new UserRoleDTO(user.RoleCode)
         );
     }
 }

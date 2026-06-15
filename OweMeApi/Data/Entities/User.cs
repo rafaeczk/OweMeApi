@@ -1,6 +1,5 @@
 ﻿using OweMeApi.Modules.Users.Domain.Enums;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace OweMeApi.Data.Entities;
@@ -22,8 +21,6 @@ public class User
     [JsonIgnore]
     public string Hash { get; set; } = string.Empty;
 
-    public string RoleCode { get; set; } = SystemUserRole.User;
-
-    [ForeignKey(nameof(RoleCode))]
-    public UserRole? Role { get; set; }
+    [Required]
+    public string RoleCode { get; set; } = UserRole.User;
 }

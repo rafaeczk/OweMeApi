@@ -11,9 +11,9 @@ public static class DebtPaymentFilters
     {
         switch (user.Role)
         {
-            case SystemUserRole.Admin:
+            case UserRole.Admin:
                 return query;
-            case SystemUserRole.User:
+            case UserRole.User:
                 return query.Where(p => p.PayerId == user.Id);
             default:
                 break;
@@ -27,9 +27,9 @@ public static class DebtPaymentFilters
     {
         switch (user.Role)
         {
-            case SystemUserRole.Admin:
+            case UserRole.Admin:
                 return query;
-            case SystemUserRole.User:
+            case UserRole.User:
                 return query.Where(p => p.ReceiverId == user.Id);
             default:
                 break;

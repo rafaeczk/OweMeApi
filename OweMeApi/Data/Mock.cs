@@ -26,7 +26,7 @@ public static class Mock
             Id = Guid.NewGuid(),
             Email = "a@gmail.com",
             FullName = "a",
-            RoleCode = SystemUserRole.Admin,
+            RoleCode = UserRole.Admin,
             Hash = BCrypt.Net.BCrypt.HashPassword("123")
         };
 
@@ -35,7 +35,7 @@ public static class Mock
             Id = Guid.NewGuid(),
             Email = "u1@gmail.com",
             FullName = "u1",
-            RoleCode = SystemUserRole.User,
+            RoleCode = UserRole.User,
             Hash = BCrypt.Net.BCrypt.HashPassword("123")
         };
 
@@ -44,7 +44,7 @@ public static class Mock
             Id = Guid.NewGuid(),
             Email = "u2@gmail.com",
             FullName = "u2",
-            RoleCode = SystemUserRole.User,
+            RoleCode = UserRole.User,
             Hash = BCrypt.Net.BCrypt.HashPassword("123")
         };
 
@@ -53,7 +53,7 @@ public static class Mock
             Id = Guid.NewGuid(),
             Email = "u3@gmail.com",
             FullName = "u3",
-            RoleCode = SystemUserRole.User,
+            RoleCode = UserRole.User,
             Hash = BCrypt.Net.BCrypt.HashPassword("123")
         };
 
