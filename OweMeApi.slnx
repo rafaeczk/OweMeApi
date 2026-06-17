@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="Domain/Domain.csproj" Id="95adf465-8fa3-4297-8bad-3fc7efa6bb39" />
   <Project Path="OweMeApi/OweMeApi.csproj" />
 </Solution>
