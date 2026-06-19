@@ -1,0 +1,49 @@
+﻿using Domain.Common;
+using Domain.Entities;
+using Infrastructure.Data.Identity;
+using Infrastructure.Common.Interfaces;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Reflection;
+
+namespace Infrastructure.Data;
+
+public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options), IAppDbContext
+{
+    public DbSet<FriendCode> FriendCodes => Set<FriendCode>();
+    public DbSet<Friendship> Friendships => Set<Friendship>();
+
+    // ---
+    public DbSet<Debt> Debts => Set<Debt>();
+    public DbSet<LedgerEvent> LedgerEvents => Set<LedgerEvent>();
+    public DbSet<DebtAdjustment> DebtAdjustments => Set<DebtAdjustment>();
+    public DbSet<DebtPayment> DebtPayments => Set<DebtPayment>();
+    public DbSet<DebtPaymentStatusChange> DebtPaymentStatusChanges => Set<DebtPaymentStatusChange>();
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+        builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+    }
+}
+
+public static class EntityTypeBuilderExtensions
+{
+    public static void ConfigureAuditableEntryFields<T>(this EntityTypeBuilder<T> entity)
+        where T : BaseAuditableEntity
+    {
+        entity.HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(e => e.CreatedBy)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false);
+
+        entity.HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(e => e.UpdatedBy)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false);
+    }
+}

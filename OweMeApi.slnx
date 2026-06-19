@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="Domain/Domain.csproj" Id="95adf465-8fa3-4297-8bad-3fc7efa6bb39" />
+  <Project Path="Infrastructure/Infrastructure.csproj" Id="fca98f59-a812-4c87-8ea7-5c62c0e1a5b1" />
   <Project Path="OweMeApi/OweMeApi.csproj" />
 </Solution>
