@@ -1,7 +1,8 @@
 ﻿using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
-namespace Infrastructure.Common.Interfaces;
+namespace Application.Common.Interfaces;
 
 public interface IAppDbContext
 {
@@ -13,5 +14,7 @@ public interface IAppDbContext
     DbSet<DebtPayment> DebtPayments { get; }
     DbSet<DebtPaymentStatusChange> DebtPaymentStatusChanges { get; }
 
-    Task<int> SaveChangesAsync(CancellationToken cancellationToken);
+    Task<int> SaveChangesAsync(CancellationToken ct = default);
+
+    Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct = default);
 }

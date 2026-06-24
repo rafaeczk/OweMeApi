@@ -1,16 +1,17 @@
-﻿using Domain.Common;
+﻿using Application.Common.Interfaces;
+using Domain.Common;
 using Domain.Entities;
-using Infrastructure.Data.Identity;
-using Infrastructure.Common.Interfaces;
+using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage;
 using System.Reflection;
 
 namespace Infrastructure.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options), IAppDbContext
+public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>(options), IAppDbContext
 {
     public DbSet<FriendCode> FriendCodes => Set<FriendCode>();
     public DbSet<Friendship> Friendships => Set<Friendship>();
@@ -27,6 +28,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         base.OnModelCreating(builder);
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }
+
+    public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct = default)
+    {
+        return await Database.BeginTransactionAsync(ct);
+    }
 }
 
 public static class EntityTypeBuilderExtensions
@@ -34,13 +40,13 @@ public static class EntityTypeBuilderExtensions
     public static void ConfigureAuditableEntryFields<T>(this EntityTypeBuilder<T> entity)
         where T : BaseAuditableEntity
     {
-        entity.HasOne<ApplicationUser>()
+        entity.HasOne<AppUser>()
             .WithMany()
             .HasForeignKey(e => e.CreatedBy)
             .OnDelete(DeleteBehavior.Restrict)
             .IsRequired(false);
 
-        entity.HasOne<ApplicationUser>()
+        entity.HasOne<AppUser>()
             .WithMany()
             .HasForeignKey(e => e.UpdatedBy)
             .OnDelete(DeleteBehavior.Restrict)

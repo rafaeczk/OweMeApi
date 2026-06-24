@@ -1,6 +1,6 @@
 ﻿using Domain.Entities;
 using Domain.Enums;
-using Infrastructure.Data.Identity;
+using Infrastructure.Identity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -25,10 +25,10 @@ public static class InitialiserExtensions
     }
 }
 
-public class ApplicationDbContextInitialiser(AppDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+public class ApplicationDbContextInitialiser(AppDbContext context, UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager)
 {
     private readonly AppDbContext _context = context;
-    private readonly UserManager<ApplicationUser> _userManager = userManager;
+    private readonly UserManager<AppUser> _userManager = userManager;
     private readonly RoleManager<IdentityRole> _roleManager = roleManager;
 
     public async Task SeedRoles()
@@ -44,7 +44,7 @@ public class ApplicationDbContextInitialiser(AppDbContext context, UserManager<A
     {
         if (await _userManager.Users.AnyAsync()) return;
 
-        ApplicationUser admin = new()
+        AppUser admin = new()
         {
             Id = Guid.NewGuid(),
             UserName = "a@gmail.com",
@@ -54,7 +54,7 @@ public class ApplicationDbContextInitialiser(AppDbContext context, UserManager<A
         if ((await _userManager.CreateAsync(admin, "123")).Succeeded)
             await _userManager.AddToRoleAsync(admin, UserRole.Admin);
 
-        ApplicationUser u1 = new()
+        AppUser u1 = new()
         {
             Id = Guid.NewGuid(),
             UserName = "u1@gmail.com",
@@ -64,7 +64,7 @@ public class ApplicationDbContextInitialiser(AppDbContext context, UserManager<A
         if ((await _userManager.CreateAsync(u1, "123")).Succeeded)
             await _userManager.AddToRoleAsync(u1, UserRole.User);
 
-        ApplicationUser u2 = new()
+        AppUser u2 = new()
         {
             Id = Guid.NewGuid(),
             UserName = "u2@gmail.com",
@@ -74,7 +74,7 @@ public class ApplicationDbContextInitialiser(AppDbContext context, UserManager<A
         if ((await _userManager.CreateAsync(u2, "123")).Succeeded)
             await _userManager.AddToRoleAsync(u2, UserRole.User);
 
-        ApplicationUser u3 = new()
+        AppUser u3 = new()
         {
             Id = Guid.NewGuid(),
             UserName = "u3@gmail.com",
@@ -98,9 +98,9 @@ public class ApplicationDbContextInitialiser(AppDbContext context, UserManager<A
 
         var friendships = new List<Friendship>
         {
-            new() { UserId = user1.Id, FriendId = user2.Id, IsAccepted = true, AcceptedAt = DateTime.UtcNow },
-            new() { UserId = user1.Id, FriendId = user3.Id, IsAccepted = true, AcceptedAt = DateTime.UtcNow },
-            new() { UserId = user2.Id, FriendId = user3.Id, IsAccepted = true, AcceptedAt = DateTime.UtcNow }
+            Friendship.FromFriendCode(user1.Id, FriendCode.ForUser(user2.Id)),
+            Friendship.FromFriendCode(user1.Id, FriendCode.ForUser(user3.Id)),
+            Friendship.FromFriendCode(user2.Id, FriendCode.ForUser(user3.Id))
         };
 
         await _context.Friendships.AddRangeAsync(friendships);

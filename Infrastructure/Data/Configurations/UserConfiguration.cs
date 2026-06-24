@@ -1,5 +1,5 @@
 ﻿using Domain.Entities;
-using Infrastructure.Data.Identity;
+using Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -16,7 +16,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.FullName).HasColumnName("FullName");
         builder.Property(u => u.Email).HasColumnName("Email");
 
-        builder.HasOne<ApplicationUser>()
+        builder.HasOne<AppUser>()
             .WithOne()
             .HasForeignKey<User>(u => u.Id);
     }

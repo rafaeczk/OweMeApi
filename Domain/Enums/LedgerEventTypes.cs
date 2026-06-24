@@ -1,6 +1,6 @@
 ﻿namespace Domain.Enums;
 
-public static class LedgerEventType
+public static class LedgerEventTypes
 {
     public const string Adjustment = nameof(Adjustment);
     public const string Payment = nameof(Payment);
@@ -18,5 +18,13 @@ public static class LedgerEventType
         CreditorDebtApprovement, CreditorDebtDisapprovement, DebtorDebtApprovement, DebtorDebtDisapprovement,
         DebtSettlement
     ];
+
+    public static string[] ApprovementsValueList =>
+    [
+        CreditorDebtApprovement, CreditorDebtDisapprovement, DebtorDebtApprovement, DebtorDebtDisapprovement
+    ];
+
     public static bool Verify(string v) => ValueList.Contains(v);
+
+    public static bool VerifyApprovement(string v) => ApprovementsValueList.Contains(v);
 }

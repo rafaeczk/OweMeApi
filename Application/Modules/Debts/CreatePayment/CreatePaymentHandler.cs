@@ -1,0 +1,58 @@
+﻿using Application.Common;
+using Application.Common.Interfaces;
+using Application.Modules.Debts._Filters;
+using Domain.Entities;
+using Domain.Enums;
+using Domain.ValueObjects;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
+namespace Application.Modules.Debts.CreatePayment;
+
+public record CreatePaymentCommand(Guid DebtId, decimal Amount, string? Note, string PaymentMethod) : IRequest<HandlerResult<Guid>>;
+
+public class CreatePaymentHandler(
+    IAppDbContext context,
+    IUserContext user,
+    ILogger<CreatePaymentHandler> logger) : IRequestHandler<CreatePaymentCommand, HandlerResult<Guid>>
+{
+    public async Task<HandlerResult<Guid>> Handle(CreatePaymentCommand request, CancellationToken ct)
+    {
+        var debt = await context.Debts
+            .DebtOwnerOnly(user)
+            .FirstOrDefaultAsync(d => d.Id == request.DebtId, ct);
+
+        if (debt == null)
+            return HandlerResult.Failure("Debt not found", ErrorCode.NotFound);
+
+        using var transaction = await context.BeginTransactionAsync(ct);
+
+        try
+        {
+            var payment = DebtPayment.Create(
+                new Money(request.Amount),
+                user.Id,
+                (debt.CreditorId == user.Id) ? debt.DebtorId : debt.CreditorId,
+                request.PaymentMethod,
+                request.Note);
+            context.DebtPayments.Add(payment);
+
+            var paymentEvent = LedgerEvent.CreatePayment(debt.Id, payment.Id);
+            context.LedgerEvents.Add(paymentEvent);
+
+            payment.CreateStatusChange(DebtPaymentStatus.Pending, "Init status");
+
+            await context.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
+
+            return payment.Id;
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Create payment error for {UserId}", user.Id);
+
+            return HandlerResult.Failure("Technical error", ErrorCode.InternalError);
+        }
+    }
+}

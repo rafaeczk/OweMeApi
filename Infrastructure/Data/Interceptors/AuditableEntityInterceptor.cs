@@ -1,5 +1,5 @@
 ﻿using Domain.Common;
-using Infrastructure.Common.Interfaces;
+using Application.Common.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;

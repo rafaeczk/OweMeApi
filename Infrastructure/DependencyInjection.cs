@@ -1,13 +1,13 @@
-﻿using Infrastructure.Common.Interfaces;
-using Infrastructure.Data;
-using Infrastructure.Data.Identity;
+﻿using Infrastructure.Data;
 using Infrastructure.Data.Interceptors;
+using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Application.Common.Interfaces;
 
 namespace Infrastructure;
 
@@ -37,9 +37,11 @@ public static class DependencyInjection
         builder.Services.AddAuthorizationBuilder();
 
         builder.Services
-            .AddIdentityCore<ApplicationUser>()
+            .AddIdentityCore<AppUser>()
             .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<AppDbContext>()
             .AddApiEndpoints();
+        
+        builder.Services.AddTransient<IIdentityService, IdentityService>();
     }
 }
