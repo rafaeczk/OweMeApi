@@ -10,13 +10,14 @@ namespace Infrastructure.Data;
 
 public static class InitialiserExtensions
 {
-    public static async Task InitialiseDatabaseDevMock(this WebApplication app, bool dev)
+    public static async Task InitialiseDatabase(this WebApplication app, bool dev)
     {
         using var scope = app.Services.CreateScope();
 
         var initialiser = scope.ServiceProvider.GetRequiredService<ApplicationDbContextInitialiser>();
 
         await initialiser.SeedRoles();
+
         if (dev)
         {
             await initialiser.SeedMockUsers();
@@ -25,11 +26,11 @@ public static class InitialiserExtensions
     }
 }
 
-public class ApplicationDbContextInitialiser(AppDbContext context, UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager)
+public class ApplicationDbContextInitialiser(AppDbContext context, UserManager<AppUser> userManager, RoleManager<IdentityRole<Guid>> roleManager)
 {
     private readonly AppDbContext _context = context;
     private readonly UserManager<AppUser> _userManager = userManager;
-    private readonly RoleManager<IdentityRole> _roleManager = roleManager;
+    private readonly RoleManager<IdentityRole<Guid>> _roleManager = roleManager;
 
     public async Task SeedRoles()
     {
@@ -51,8 +52,11 @@ public class ApplicationDbContextInitialiser(AppDbContext context, UserManager<A
             Email = "a@gmail.com",
             FullName = "a"
         };
-        if ((await _userManager.CreateAsync(admin, "123")).Succeeded)
+        var adminResult = await _userManager.CreateAsync(admin, "!23Haslo");
+        if (adminResult.Succeeded)
             await _userManager.AddToRoleAsync(admin, UserRole.Admin);
+        else
+            throw new Exception($"Failed to create admin user: {string.Join(", ", adminResult.Errors.Select(e => e.Description))}");
 
         AppUser u1 = new()
         {
@@ -61,8 +65,11 @@ public class ApplicationDbContextInitialiser(AppDbContext context, UserManager<A
             Email = "u1@gmail.com",
             FullName = "u1"
         };
-        if ((await _userManager.CreateAsync(u1, "123")).Succeeded)
+        var u1Result = await _userManager.CreateAsync(u1, "!23Haslo");
+        if (u1Result.Succeeded)
             await _userManager.AddToRoleAsync(u1, UserRole.User);
+        else
+            throw new Exception($"Failed to create u1 user: {string.Join(", ", u1Result.Errors.Select(e => e.Description))}");
 
         AppUser u2 = new()
         {
@@ -71,8 +78,11 @@ public class ApplicationDbContextInitialiser(AppDbContext context, UserManager<A
             Email = "u2@gmail.com",
             FullName = "u2"
         };
-        if ((await _userManager.CreateAsync(u2, "123")).Succeeded)
+        var u2Result = await _userManager.CreateAsync(u2, "!23Haslo");
+        if (u2Result.Succeeded)
             await _userManager.AddToRoleAsync(u2, UserRole.User);
+        else
+            throw new Exception($"Failed to create u2 user: {string.Join(", ", u2Result.Errors.Select(e => e.Description))}");
 
         AppUser u3 = new()
         {
@@ -81,20 +91,25 @@ public class ApplicationDbContextInitialiser(AppDbContext context, UserManager<A
             Email = "u3@gmail.com",
             FullName = "u3"
         };
-        if ((await _userManager.CreateAsync(u3, "123")).Succeeded)
+        var u3Result = await _userManager.CreateAsync(u3, "!23Haslo");
+        if (u3Result.Succeeded)
             await _userManager.AddToRoleAsync(u3, UserRole.User);
+        else
+            throw new Exception($"Failed to create u3 user: {string.Join(", ", u3Result.Errors.Select(e => e.Description))}");
     }
 
     public async Task SeedMockFriendships()
     {
         if (await _context.Friendships.AnyAsync()) return;
 
-        var user1 = await _userManager.FindByEmailAsync("u1@gmail.com");
-        var user2 = await _userManager.FindByEmailAsync("u2@gmail.com");
-        var user3 = await _userManager.FindByEmailAsync("u3@gmail.com");
+        _context.ChangeTracker.Clear();
+
+        var user1 = await _userManager.FindByNameAsync("u1@gmail.com");
+        var user2 = await _userManager.FindByNameAsync("u2@gmail.com");
+        var user3 = await _userManager.FindByNameAsync("u3@gmail.com");
 
         if (user1 == null || user2 == null || user3 == null)
-            throw new Exception("User not found while mocking friendships");
+            throw new Exception($"User not found while mocking friendships. u1: {user1?.UserName}, u2: {user2?.UserName}, u3: {user3?.UserName}");
 
         var friendships = new List<Friendship>
         {

@@ -6,10 +6,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Modules.FriendCodes.GenerateMyCode;
 
-public record GenerateMyCodeCommand(Guid UserId) : IRequest<HandlerResult<FriendCodeDTO>>;
+public record GenerateMyCodeCommand() : IRequest<HandlerResult<FriendCodeDTO>>;
 
 public class GenerateMyCodeHandler(
-    IAppDbContext context) : IRequestHandler<GenerateMyCodeCommand, HandlerResult<FriendCodeDTO>>
+    IAppDbContext context,
+    IUserContext user) : IRequestHandler<GenerateMyCodeCommand, HandlerResult<FriendCodeDTO>>
 {
     public async Task<HandlerResult<FriendCodeDTO>> Handle(GenerateMyCodeCommand request, CancellationToken ct)
     {
@@ -19,7 +20,7 @@ public class GenerateMyCodeHandler(
 
         context.FriendCodes.RemoveRange(expiredCodes);
 
-        var friendCode = FriendCode.ForUser(request.UserId);
+        var friendCode = FriendCode.ForUser(user.Id);
 
         context.FriendCodes.Add(friendCode);
         await context.SaveChangesAsync(ct);

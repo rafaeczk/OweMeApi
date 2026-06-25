@@ -5,13 +5,15 @@ using MediatR;
 
 namespace Application.Modules.Users.GetMe;
 
-public record GetMeQuery(Guid UserId) : IRequest<HandlerResult<UserDTO>>;
+public record GetMeQuery : IRequest<HandlerResult<UserDTO>>;
 
-public class GetMeHandler(IIdentityService identityService) : IRequestHandler<GetMeQuery, HandlerResult<UserDTO>>
+public class GetMeHandler(
+    IIdentityService identityService,
+    IUserContext userContext) : IRequestHandler<GetMeQuery, HandlerResult<UserDTO>>
 {
     public async Task<HandlerResult<UserDTO>> Handle(GetMeQuery request, CancellationToken ct)
     {
-        var (userFound, user) = await identityService.GetUserById(request.UserId);
+        var (userFound, user) = await identityService.GetUserById(userContext.Id);
 
         if (!userFound)
             return HandlerResult.Failure("User not found", ErrorCode.NotFound);

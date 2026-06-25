@@ -1,4 +1,4 @@
-﻿namespace OweMeApi.Common;
+﻿namespace Application.Common.Exceptions;
 
 public class ApiException(string message, int statusCode) : Exception(message)
 {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-using OweMeApi.Common;
+using Application.Common.Exceptions;
 
 namespace Application.Common;
 

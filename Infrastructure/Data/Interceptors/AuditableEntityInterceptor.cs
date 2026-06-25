@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Infrastructure.Data.Interceptors;
 
-public class AuditableEntityInterceptor(IUser user) : SaveChangesInterceptor
+public class AuditableEntityInterceptor(IUserContext user) : SaveChangesInterceptor
 {
-    private readonly IUser _user = user;
+    private readonly IUserContext _user = user;
 
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
