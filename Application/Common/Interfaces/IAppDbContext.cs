@@ -17,4 +17,6 @@ public interface IAppDbContext
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct = default);
+
+    T Entry<T>(T entity);
 }

@@ -33,6 +33,11 @@ internal class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDb
     {
         return await Database.BeginTransactionAsync(ct);
     }
+
+    public new T Entry<T>(T entity)
+    {
+        return Entry(entity);
+    }
 }
 
 public static class EntityTypeBuilderExtensions

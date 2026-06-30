@@ -26,48 +26,64 @@ public class LedgerEvent : BaseAuditableEntity
 
     private LedgerEvent() { }
 
-    internal static LedgerEvent Create(Guid debtId, string eventType)
+    internal static LedgerEvent Create(Debt debt, string eventType)
     {
         if (!LedgerEventTypes.Verify(eventType))
             throw new InvalidLedgerEventTypeException(eventType);
 
         return new()
         {
-            DebtId = debtId,
+            Id = Guid.NewGuid(),
+            DebtId = debt.Id,
+            Debt = debt,
             EventType = eventType,
             InternalReference = GenReferenceNumber()
         };
     }
 
-    internal static LedgerEvent CreateAdjustment(Guid debtId, DebtAdjustment adjustment)
+    internal static LedgerEvent CreateAdjustment(Debt debt, DebtAdjustment adjustment)
     {
-        return new()
+        var adjustmentEvent = new LedgerEvent()
         {
-            DebtId = debtId,
+            Id = Guid.NewGuid(),
+            DebtId = debt.Id,
+            Debt = debt,
             AdjustmentId = adjustment.Id,
             Adjustment = adjustment,
             EventType = LedgerEventTypes.Adjustment,
             InternalReference = GenReferenceNumber()
         };
+
+        adjustment.LedgerEvent = adjustmentEvent;
+
+        return adjustmentEvent;
     }
 
-    internal static LedgerEvent CreatePayment(Guid debtId, DebtPayment payment)
+    internal static LedgerEvent CreatePayment(Debt debt, DebtPayment payment)
     {
-        return new()
+        var paymentEvent = new LedgerEvent()
         {
-            DebtId = debtId,
+            Id = Guid.NewGuid(),
+            DebtId = debt.Id,
+            Debt = debt,
             PaymentId = payment.Id,
             Payment = payment,
             EventType = LedgerEventTypes.Payment,
             InternalReference = GenReferenceNumber()
         };
+
+        payment.LedgerEvent = paymentEvent;
+
+        return paymentEvent;
     }
 
-    internal static LedgerEvent CreatePaymentStatusChange(Guid debtId, DebtPaymentStatusChange statusChange)
+    internal static LedgerEvent CreatePaymentStatusChange(Debt debt, DebtPaymentStatusChange statusChange)
     {
         return new()
         {
-            DebtId = debtId,
+            Id = Guid.NewGuid(),
+            DebtId = debt.Id,
+            Debt = debt,
             PaymentStatusChangeId = statusChange.Id,
             PaymentStatusChange = statusChange,
             EventType = LedgerEventTypes.PaymentStatusChange,

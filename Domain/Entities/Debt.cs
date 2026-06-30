@@ -46,7 +46,7 @@ public class Debt : BaseAuditableEntity
         if (!LedgerEventTypes.VerifyApprovement(eventType))
             throw new InvalidLedgerEventApprovementTypeException(eventType);
 
-        var approvementEvent = LedgerEvent.Create(Id, eventType);
+        var approvementEvent = LedgerEvent.Create(this, eventType);
 
         LedgerEvents.Add(approvementEvent);
 
@@ -61,28 +61,30 @@ public class Debt : BaseAuditableEntity
         if(!GetCreditorApproves() || !GetDebtorApproves())
             throw new DebtIsNotFullyApprovedException();
 
-        var settlementEvent = LedgerEvent.Create(Id, LedgerEventTypes.DebtSettlement);
+        var settlementEvent = LedgerEvent.Create(this, LedgerEventTypes.DebtSettlement);
 
         LedgerEvents.Add(settlementEvent);
 
         return settlementEvent;
     }
 
-    public LedgerEvent CreateAdjustment(Money money, string note)
+    public DebtAdjustment CreateAdjustment(Money money, string note)
     {
         if (GetIsSettled())
             throw new DebtIsSettledException();
 
         var adjustment = DebtAdjustment.Create(money, note);
 
-        var adjustmentEvent = LedgerEvent.CreateAdjustment(Id, adjustment);
+        var adjustmentEvent = LedgerEvent.CreateAdjustment(this, adjustment);
+
+        adjustment.LedgerEvent = adjustmentEvent;
 
         LedgerEvents.Add(adjustmentEvent);
 
-        return adjustmentEvent;
+        return adjustment;
     }
 
-    public LedgerEvent CreatePayment(Money money, Guid payerId, Guid receiverId, string method, string? note)
+    public DebtPayment CreatePayment(Money money, Guid payerId, Guid receiverId, string method, string? note)
     {
         if (GetIsSettled())
             throw new DebtIsSettledException();
@@ -94,11 +96,13 @@ public class Debt : BaseAuditableEntity
             method,
             note);
 
-        var paymentEvent = LedgerEvent.CreatePayment(Id, payment);
+        var paymentEvent = LedgerEvent.CreatePayment(this, payment);
+
+        payment.LedgerEvent = paymentEvent;
 
         LedgerEvents.Add(paymentEvent);
 
-        return paymentEvent;
+        return payment;
     }
 
     // GETTERS
@@ -119,9 +123,9 @@ public class Debt : BaseAuditableEntity
             .OrderByDescending(e => e.CreatedAt)
             .Select(e => e.Payment)
             .Where(p => p != null)
-            .Where(p => p!.StatusChangeEvents
-                .OrderByDescending(e => e.CreatedAt)
-                .Select(e => e.PaymentStatusChange!.Status)
+            .Where(p => p!.StatusChanges
+                .OrderByDescending(p => p.LedgerEvent.CreatedAt)
+                .Select(e => e.Status)
                 .FirstOrDefault() == DebtPaymentStatus.Success)
             .Sum(p =>
                 (p!.PayerId == p.LedgerEvent.Debt.CreditorId && p!.ReceiverId == p.LedgerEvent.Debt.DebtorId)
@@ -170,8 +174,8 @@ public class Debt : BaseAuditableEntity
     {
         return LedgerEvents
             .Where(e => e.EventType == LedgerEventTypes.Payment)
-            .Any(e => e.Payment!.StatusChangeEvents
-                .OrderByDescending(e => e.CreatedAt)
-                .First().PaymentStatusChange!.Status == DebtPaymentStatus.Pending);
+            .Any(e => e.Payment!.StatusChanges
+                .OrderByDescending(e => e.LedgerEvent.CreatedAt)
+                .First().Status == DebtPaymentStatus.Pending);
     }
 }

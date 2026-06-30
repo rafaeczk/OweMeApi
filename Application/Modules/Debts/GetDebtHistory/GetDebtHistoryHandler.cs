@@ -37,13 +37,13 @@ public class GetDebtHistoryHandler(
             .OrderBy(e => e.CreatedAt)
             .Include(e => e.Adjustment)
             .Include(e => e.Payment)
-                .ThenInclude(p => p!.StatusChangeEvents)
-                    .ThenInclude(e => e.PaymentStatusChange)
+                .ThenInclude(p => p!.StatusChanges)
+                    .ThenInclude(sc => sc.LedgerEvent)
             .ToListAsync(ct);
 
         return debtEvents.Select(e =>
         {
-            var statusChangeEvents = e.Payment?.StatusChangeEvents.OrderBy(sc => sc.CreatedAt);
+            var statusChanges = e.Payment?.StatusChanges.OrderBy(sc => sc.LedgerEvent.CreatedAt);
 
             return new DebtHistoryListItemDTO(
                 e.Id,
@@ -65,18 +65,18 @@ public class GetDebtHistoryHandler(
                         e.Payment.ReceiverId,
                         e.Payment.Method,
                         e.Payment.Note,
-                        statusChangeEvents!.Select(e => e.PaymentStatusChange!.Status).Last(),
-                        [.. statusChangeEvents
-                            !.Select(e => new DebtHistoryListItemPaymentHistoryListItemDTO(
-                                e.Id,
-                                e.EventType,
-                                e.InternalReference,
-                                e.CreatedAt,
-                                e.CreatedBy,
+                        statusChanges!.Select(sc => sc.Status).Last(),
+                        [.. statusChanges
+                            !.Select(sc => new DebtHistoryListItemPaymentHistoryListItemDTO(
+                                sc.Id,
+                                sc.LedgerEvent.EventType,
+                                sc.LedgerEvent.InternalReference,
+                                sc.LedgerEvent.CreatedAt,
+                                sc.LedgerEvent.CreatedBy,
                                 new DebtHistoryListItemPaymentStatusChangeDTO(
-                                    e.PaymentStatusChange!.Id,
-                                    e.PaymentStatusChange!.Status,
-                                    e.PaymentStatusChange!.Note)))
+                                    sc.Id,
+                                    sc.Status,
+                                    sc.Note)))
                         ])
                     : null);
         })

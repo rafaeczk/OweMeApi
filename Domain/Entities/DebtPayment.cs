@@ -13,7 +13,7 @@ public class DebtPayment : BaseEntity
     public string Method { get; private set; } = null!;
     public string? Note { get; private set; }
 
-    public ICollection<LedgerEvent> StatusChangeEvents { get; private set; } = [];
+    public ICollection<DebtPaymentStatusChange> StatusChanges { get; private set; } = [];
     public LedgerEvent LedgerEvent { get; internal set; } = null!;
     public User Payer { get; private set; } = null!;
     public User Receiver { get; private set; } = null!;
@@ -27,6 +27,7 @@ public class DebtPayment : BaseEntity
 
         return new()
         {
+            Id = Guid.NewGuid(),
             Money = money,
             PayerId = payerId,
             ReceiverId = receiverId,
@@ -37,10 +38,12 @@ public class DebtPayment : BaseEntity
 
     public void CreateStatusChange(string status, string? note)
     {
-        var statusChange = DebtPaymentStatusChange.Create(Id, status, note);
+        var statusChange = DebtPaymentStatusChange.Create(this, status, note);
 
-        var statusChangeEvent = LedgerEvent.CreatePaymentStatusChange(LedgerEvent.DebtId, statusChange);
+        var statusChangeEvent = LedgerEvent.CreatePaymentStatusChange(LedgerEvent.Debt, statusChange);
+        statusChange.LedgerEvent = statusChangeEvent;
 
-        StatusChangeEvents.Add(statusChangeEvent);
+        StatusChanges.Add(statusChange);
+        LedgerEvent.Debt.LedgerEvents.Add(statusChangeEvent);
     }
 }

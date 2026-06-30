@@ -49,8 +49,8 @@ public class GetDebtsHandler(
             .Where(e => debtIds.Contains(e.DebtId))
             .Include(e => e.Adjustment)
             .Include(e => e.Payment)
-                .ThenInclude(p => p.StatusChangeEvents)
-                    .ThenInclude(e => e.PaymentStatusChange)
+                .ThenInclude(p => p.StatusChanges)
+                    .ThenInclude(sc => sc.LedgerEvent)
             .OrderByDescending(e => e.CreatedAt)
             .ToListAsync(ct);
 
@@ -73,9 +73,9 @@ public class GetDebtsHandler(
                 events.Where(e => e.EventType == LedgerEventTypes.Payment)
                     .Select(e => e.Payment)
                     .Where(p => p != null)
-                    .Where(p => p!.StatusChangeEvents
-                        .OrderByDescending(e => e.CreatedAt)
-                        .Select(e => e.PaymentStatusChange!.Status)
+                    .Where(p => p!.StatusChanges
+                        .OrderByDescending(e => e.LedgerEvent.CreatedAt)
+                        .Select(e => e.Status)
                         .FirstOrDefault() == DebtPaymentStatus.Success)
                     .Sum(p =>
                         (p!.PayerId == d.CreditorId && p!.ReceiverId == d.DebtorId)

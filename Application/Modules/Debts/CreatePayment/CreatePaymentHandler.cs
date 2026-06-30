@@ -1,7 +1,6 @@
 ﻿using Application.Common;
 using Application.Common.Interfaces;
 using Application.Modules.Debts._Filters;
-using Domain.Entities;
 using Domain.Enums;
 using Domain.ValueObjects;
 using MediatR;
@@ -30,19 +29,19 @@ public class CreatePaymentHandler(
 
         try
         {
-            var paymentEvent = debt.CreatePayment(
+            var payment = debt.CreatePayment(
                 new Money(request.Amount),
                 user.Id,
                 (debt.CreditorId == user.Id) ? debt.DebtorId : debt.CreditorId,
                 request.PaymentMethod,
                 request.Note);
 
-            paymentEvent.Payment!.CreateStatusChange(DebtPaymentStatus.Pending, "Init status");
+            payment.CreateStatusChange(DebtPaymentStatus.Pending, "Init status");
 
             await context.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);
 
-            return paymentEvent.Payment!.Id;
+            return payment.Id;
         }
         catch (Exception exception)
         {

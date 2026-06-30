@@ -20,16 +20,16 @@ public class VerifyCashPaymentHandler(
         var payment = await context.DebtPayments
             .DebtPaymentReceiverOnly(user)
             .Include(p => p.LedgerEvent)
-            .Include(p => p.StatusChangeEvents)
+            .Include(p => p.StatusChanges)
             .SingleOrDefaultAsync(p => p.Id == request.PaymentId, ct);
 
         if (payment == null)
             return HandlerResult.Failure("Payment not found", ErrorCode.NotFound);
 
-        var currentPaymentStatus = payment.StatusChangeEvents
-            .Where(e => e.PaymentId == payment.Id)
-            .OrderByDescending(e => e.CreatedAt)
-            .Select(e => e.PaymentStatusChange!.Status)
+        var currentPaymentStatus = payment.StatusChanges
+            .Where(sc => sc.PaymentId == payment.Id)
+            .OrderByDescending(sc => sc.LedgerEvent.CreatedAt)
+            .Select(sc => sc.Status)
             .FirstOrDefault();
 
         if (currentPaymentStatus != DebtPaymentStatus.Pending)

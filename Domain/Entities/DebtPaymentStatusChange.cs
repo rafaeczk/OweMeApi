@@ -6,7 +6,7 @@ namespace Domain.Entities;
 
 public class DebtPaymentStatusChange : BaseEntity
 {
-    public LedgerEvent LedgerEvent { get; private set; } = null!;
+    public LedgerEvent LedgerEvent { get; internal set; } = null!;
     public Guid PaymentId { get; private set; }
     public string Status { get; private set; } = null!;
     public string? Note { get; private set; }
@@ -15,14 +15,16 @@ public class DebtPaymentStatusChange : BaseEntity
 
     private DebtPaymentStatusChange() { }
 
-    internal static DebtPaymentStatusChange Create(Guid paymentId, string status, string? note)
+    internal static DebtPaymentStatusChange Create(DebtPayment payment, string status, string? note)
     {
         if (!DebtPaymentStatus.Verify(status))
             throw new InvalidPaymentStatusException(status);
 
         return new()
         {
-            PaymentId = paymentId,
+            Id = Guid.NewGuid(),
+            PaymentId = payment.Id,
+            Payment = payment,
             Status = status,
             Note = note
         };
