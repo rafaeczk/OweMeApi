@@ -3,9 +3,9 @@ using FluentValidation;
 
 namespace Application.Modules.Debts.CreatePayment;
 
-public class CreatePaymentDTOValidator : AbstractValidator<CreatePaymentDTO>
+public class CreatePaymentCommandValidator : AbstractValidator<CreatePaymentCommand>
 {
-    public CreatePaymentDTOValidator()
+    public CreatePaymentCommandValidator()
     {
         RuleFor(d => d.DebtId)
             .NotEmpty().WithMessage("Debt id is required");

@@ -2,9 +2,9 @@
 
 namespace Application.Modules.Friends.RequestFriendByUserId;
 
-public class RequestFriendByUserIdDTOValidator : AbstractValidator<RequestFriendByUserIdDTO>
+public class RequestFriendByUserIdCommandValidator : AbstractValidator<RequestFriendByUserIdCommand>
 {
-    public RequestFriendByUserIdDTOValidator()
+    public RequestFriendByUserIdCommandValidator()
     {
         RuleFor(d => d.FriendId)
             .NotEmpty().WithMessage("Friend id is required");

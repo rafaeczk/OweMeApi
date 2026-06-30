@@ -7,6 +7,7 @@ using Application.Modules.Debts.GetDebt;
 using Application.Modules.Debts.GetDebtHistory;
 using Application.Modules.Debts.GetDebts;
 using Application.Modules.Debts.VerifyCashPayment;
+using Infrastructure.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,12 +17,12 @@ namespace WebAPI.Controllers;
 
 [Route("api/debts")]
 [ApiController]
+[Authorize(Policy = AuthPolicies.AdminOrUser)]
 public class DebtsController(IMediator mediator) : ControllerBase
 {
     private readonly IMediator _mediator = mediator;
 
     [HttpGet]
-    [Authorize(Policy = "All")]
     public async Task<ActionResult<List<DebtListItemDTO>>> GetDebts(
         [FromQuery, AllowedValues("creditor", "debtor", "any")] string role = "any",
         [FromQuery, AllowedValues("settled", "unsettled", "any")] string state = "any")
@@ -46,7 +47,6 @@ public class DebtsController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("{debtId}")]
-    [Authorize(Policy = "All")]
     public async Task<ActionResult<DebtDTO>> GetDebt(Guid debtId)
     {
         var result = await _mediator.Send(new GetDebtQuery(debtId));
@@ -55,7 +55,6 @@ public class DebtsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Policy = "User")]
     public async Task<ActionResult<Guid>> CreateDebt([FromBody] CreateDebtDTO dto)
     {
         var result = await _mediator.Send(new CreateDebtCommand(dto.DebtorId, dto.Title, dto.Description, dto.Amount));
@@ -64,7 +63,6 @@ public class DebtsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPut("{debtId}")]
-    [Authorize(Policy = "All")]
     public async Task<ActionResult<Guid>> CreateDebt(Guid debtId, [FromBody] EditDebtInformationDTO dto)
     {
         var result = await _mediator.Send(new EditDebtInformationCommand(debtId, dto.Title, dto.Description));
@@ -73,7 +71,6 @@ public class DebtsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("create-payment")]
-    [Authorize(Policy = "User")]
     public async Task<ActionResult<Guid>> CreatePayment([FromBody] CreatePaymentDTO dto)
     {
         var result = await _mediator.Send(new CreatePaymentCommand(dto.DebtId, dto.Amount, dto.Note, dto.PaymentMethod));
@@ -82,7 +79,6 @@ public class DebtsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPatch("verify-cash-payment")]
-    [Authorize(Policy = "User")]
     public async Task<ActionResult> VerifyCashPayment([FromBody] VerifyCashPaymentDTO dto)
     {
         var result = await _mediator.Send(new VerifyCashPaymentCommand(dto.PaymentId, dto.Status, dto.Note));
@@ -91,7 +87,6 @@ public class DebtsController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("{debtId}/history")]
-    [Authorize(Policy = "All")]
     public async Task<ActionResult<List<DebtHistoryListItemDTO>>> GetDebtHistory(Guid debtId)
     {
         var result = await _mediator.Send(new GetDebtHistoryQuery(debtId));
@@ -100,7 +95,6 @@ public class DebtsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPatch("{debtId}/change-amount")]
-    [Authorize(Policy = "All")]
     public async Task<ActionResult> ChangeDebtAmount(Guid debtId, [FromBody] ChangeDebtAmountDTO dto)
     {
         var result = await _mediator.Send(new ChangeDebtAmountCommand(debtId, dto.Amount, dto.Note));
@@ -109,7 +103,6 @@ public class DebtsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPatch("{debtId}/approvement")]
-    [Authorize(Policy = "All")]
     public async Task<ActionResult> ChangeDebtApprovement(Guid debtId, [FromBody] ChangeDebtApprovementDTO dto)
     {
         var result = await _mediator.Send(new ChangeDebtApprovementCommand(debtId, dto.Approve));

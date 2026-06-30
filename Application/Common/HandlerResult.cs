@@ -31,16 +31,26 @@ public class HandlerResult
     {
         if (IsSuccess) return value != null ? new OkObjectResult(value) : new OkResult();
 
-        throw new ApiException(
-            Error ?? "Unexpected error occured",
-            ErrorCode switch
+        var problemDetails = new ProblemDetails
+        {
+            Status = ErrorCode switch
             {
                 ErrorCode.NotFound => StatusCodes.Status404NotFound,
                 ErrorCode.BadRequest => StatusCodes.Status400BadRequest,
                 ErrorCode.Conflict => StatusCodes.Status409Conflict,
                 ErrorCode.Unauthorized => StatusCodes.Status401Unauthorized,
                 _ => StatusCodes.Status400BadRequest
-            });
+            },
+            Title = Error ?? "Unexpected error occured"
+        };
+
+        return ErrorCode switch
+        {
+            ErrorCode.NotFound => new NotFoundObjectResult(problemDetails),
+            ErrorCode.Conflict => new ConflictObjectResult(problemDetails),
+            ErrorCode.Unauthorized => new UnauthorizedObjectResult(problemDetails),
+            _ => new BadRequestObjectResult(problemDetails)
+        };
     }
 
     public virtual ActionResult ToActionResult() => CreateActionResult(null);

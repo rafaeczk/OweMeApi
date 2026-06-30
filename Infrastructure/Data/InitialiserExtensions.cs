@@ -1,6 +1,5 @@
 ﻿using Domain.Entities;
 using Domain.Enums;
-using Infrastructure.Identity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -26,10 +25,10 @@ public static class InitialiserExtensions
     }
 }
 
-public class ApplicationDbContextInitialiser(AppDbContext context, UserManager<AppUser> userManager, RoleManager<IdentityRole<Guid>> roleManager)
+internal class ApplicationDbContextInitialiser(AppDbContext context, UserManager<User> userManager, RoleManager<IdentityRole<Guid>> roleManager)
 {
     private readonly AppDbContext _context = context;
-    private readonly UserManager<AppUser> _userManager = userManager;
+    private readonly UserManager<User> _userManager = userManager;
     private readonly RoleManager<IdentityRole<Guid>> _roleManager = roleManager;
 
     public async Task SeedRoles()
@@ -45,7 +44,7 @@ public class ApplicationDbContextInitialiser(AppDbContext context, UserManager<A
     {
         if (await _userManager.Users.AnyAsync()) return;
 
-        AppUser admin = new()
+        User admin = new()
         {
             Id = Guid.NewGuid(),
             UserName = "a@gmail.com",
@@ -58,7 +57,7 @@ public class ApplicationDbContextInitialiser(AppDbContext context, UserManager<A
         else
             throw new Exception($"Failed to create admin user: {string.Join(", ", adminResult.Errors.Select(e => e.Description))}");
 
-        AppUser u1 = new()
+        User u1 = new()
         {
             Id = Guid.NewGuid(),
             UserName = "u1@gmail.com",
@@ -71,7 +70,7 @@ public class ApplicationDbContextInitialiser(AppDbContext context, UserManager<A
         else
             throw new Exception($"Failed to create u1 user: {string.Join(", ", u1Result.Errors.Select(e => e.Description))}");
 
-        AppUser u2 = new()
+        User u2 = new()
         {
             Id = Guid.NewGuid(),
             UserName = "u2@gmail.com",
@@ -84,7 +83,7 @@ public class ApplicationDbContextInitialiser(AppDbContext context, UserManager<A
         else
             throw new Exception($"Failed to create u2 user: {string.Join(", ", u2Result.Errors.Select(e => e.Description))}");
 
-        AppUser u3 = new()
+        User u3 = new()
         {
             Id = Guid.NewGuid(),
             UserName = "u3@gmail.com",

@@ -1,22 +1,10 @@
-﻿using Domain.Common;
+﻿using Microsoft.AspNetCore.Identity;
 
 namespace Domain.Entities;
 
-public class User : BaseEntity
+public class User : IdentityUser<Guid>
 {
-    public string Email { get; private set; } = string.Empty;
-    public string FullName { get; private set; } = string.Empty;
+    public string FullName { get; set; } = null!;
 
-    public User(Guid id, string email, string fullName)
-    {
-        Id = id;
-        Email = email;
-        FullName = fullName;
-    }
-
-    public void UpdateProfile(string email, string fullName)
-    {
-        Email = email;
-        FullName = fullName;
-    }
+    public User() { }
 }

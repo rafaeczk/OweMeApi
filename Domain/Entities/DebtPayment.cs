@@ -14,13 +14,13 @@ public class DebtPayment : BaseEntity
     public string? Note { get; private set; }
 
     public ICollection<LedgerEvent> StatusChangeEvents { get; private set; } = [];
-    public LedgerEvent LedgerEvent { get; private set; } = null!;
+    public LedgerEvent LedgerEvent { get; internal set; } = null!;
     public User Payer { get; private set; } = null!;
     public User Receiver { get; private set; } = null!;
 
     private DebtPayment() { }
 
-    public static DebtPayment Create(Money money, Guid payerId, Guid receiverId, string method, string? note)
+    internal static DebtPayment Create(Money money, Guid payerId, Guid receiverId, string method, string? note)
     {
         if (!DebtPaymentMethod.Verify(method))
             throw new InvalidPaymentMethodException(method);

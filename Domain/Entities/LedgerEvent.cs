@@ -51,13 +51,14 @@ public class LedgerEvent : BaseAuditableEntity
         };
     }
 
-    public static LedgerEvent CreatePayment(Guid debtId, Guid paymentId)
+    internal static LedgerEvent CreatePayment(Guid debtId, DebtPayment payment)
     {
         return new()
         {
             DebtId = debtId,
-            PaymentId = paymentId,
-            EventType = LedgerEventTypes.Adjustment,
+            PaymentId = payment.Id,
+            Payment = payment,
+            EventType = LedgerEventTypes.Payment,
             InternalReference = GenReferenceNumber()
         };
     }
@@ -69,7 +70,7 @@ public class LedgerEvent : BaseAuditableEntity
             DebtId = debtId,
             PaymentStatusChangeId = statusChange.Id,
             PaymentStatusChange = statusChange,
-            EventType = LedgerEventTypes.Adjustment,
+            EventType = LedgerEventTypes.PaymentStatusChange,
             InternalReference = GenReferenceNumber()
         };
     }

@@ -2,6 +2,7 @@
 using Application.Modules.Users.ChangeUserPassword;
 using Application.Modules.Users.GetMe;
 using Application.Modules.Users.GetUsers;
+using Infrastructure.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,7 +25,7 @@ public class UsersController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Policy = "AdminOrModerator")]
+    [Authorize(Policy = AuthPolicies.Admin)]
     public async Task<ActionResult<List<UserDTO>>> GetUsers()
     {
         var result = await _mediator.Send(new GetUsersQuery());
@@ -33,7 +34,7 @@ public class UsersController(IMediator mediator) : ControllerBase
     }
 
     [HttpPut("{userId}/password")]
-    [Authorize(Policy = "Admin")]
+    [Authorize(Policy = AuthPolicies.Admin)]
     public async Task<ActionResult> ChangeUserPassword(Guid userId, [FromBody] ChangeUserPasswordDTO dto)
     {
         var result = await _mediator.Send(new ChangeUserPasswordCommand(userId, dto.Password));

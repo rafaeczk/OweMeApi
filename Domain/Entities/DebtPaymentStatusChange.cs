@@ -15,7 +15,7 @@ public class DebtPaymentStatusChange : BaseEntity
 
     private DebtPaymentStatusChange() { }
 
-    public static DebtPaymentStatusChange Create(Guid paymentId, string status, string? note)
+    internal static DebtPaymentStatusChange Create(Guid paymentId, string status, string? note)
     {
         if (!DebtPaymentStatus.Verify(status))
             throw new InvalidPaymentStatusException(status);

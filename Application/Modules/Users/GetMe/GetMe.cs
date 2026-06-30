@@ -20,6 +20,6 @@ public class GetMeHandler(
 
         var (_, role) = await identityService.GetUserRole(user.Id);
 
-        return new UserDTO(user.Id, user.Email, user.FullName, new UserRoleDTO(role ?? "Not found"));
+        return new UserDTO(user.Id, user.Email!, user.FullName, new UserRoleDTO(role ?? "Not found"));
     }
 }

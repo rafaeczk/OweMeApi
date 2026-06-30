@@ -38,7 +38,7 @@ public class Debt : BaseAuditableEntity
         };
     }
 
-    public void CreateApprovement(string eventType)
+    public LedgerEvent CreateApprovement(string eventType)
     {
         if (GetIsSettled())
             throw new DebtIsSettledException();
@@ -46,12 +46,14 @@ public class Debt : BaseAuditableEntity
         if (!LedgerEventTypes.VerifyApprovement(eventType))
             throw new InvalidLedgerEventApprovementTypeException(eventType);
 
-        var newEvent = LedgerEvent.Create(Id, eventType);
+        var approvementEvent = LedgerEvent.Create(Id, eventType);
 
-        LedgerEvents.Add(newEvent);
+        LedgerEvents.Add(approvementEvent);
+
+        return approvementEvent;
     }
 
-    public void CreateSettlement()
+    public LedgerEvent CreateSettlement()
     {
         if (GetIsSettled())
             throw new DebtIsSettledException();
@@ -59,12 +61,14 @@ public class Debt : BaseAuditableEntity
         if(!GetCreditorApproves() || !GetDebtorApproves())
             throw new DebtIsNotFullyApprovedException();
 
-        var newEvent = LedgerEvent.Create(Id, LedgerEventTypes.DebtSettlement);
+        var settlementEvent = LedgerEvent.Create(Id, LedgerEventTypes.DebtSettlement);
 
-        LedgerEvents.Add(newEvent);
+        LedgerEvents.Add(settlementEvent);
+
+        return settlementEvent;
     }
 
-    public void CreateAdjustment(Money money, string note)
+    public LedgerEvent CreateAdjustment(Money money, string note)
     {
         if (GetIsSettled())
             throw new DebtIsSettledException();
@@ -74,6 +78,27 @@ public class Debt : BaseAuditableEntity
         var adjustmentEvent = LedgerEvent.CreateAdjustment(Id, adjustment);
 
         LedgerEvents.Add(adjustmentEvent);
+
+        return adjustmentEvent;
+    }
+
+    public LedgerEvent CreatePayment(Money money, Guid payerId, Guid receiverId, string method, string? note)
+    {
+        if (GetIsSettled())
+            throw new DebtIsSettledException();
+
+        var payment = DebtPayment.Create(
+            money,
+            payerId,
+            receiverId,
+            method,
+            note);
+
+        var paymentEvent = LedgerEvent.CreatePayment(Id, payment);
+
+        LedgerEvents.Add(paymentEvent);
+
+        return paymentEvent;
     }
 
     // GETTERS

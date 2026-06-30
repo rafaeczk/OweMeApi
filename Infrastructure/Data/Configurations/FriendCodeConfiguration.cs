@@ -4,20 +4,20 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Data.Configurations;
 
-public class FriendCodeConfiguration : IEntityTypeConfiguration<FriendCode>
+internal class FriendCodeConfiguration : IEntityTypeConfiguration<FriendCode>
 {
-    public void Configure(EntityTypeBuilder<FriendCode> entity)
+    public void Configure(EntityTypeBuilder<FriendCode> builder)
     {
-        entity.HasKey(fc => fc.UserId);
+        builder.HasKey(fc => fc.UserId);
 
-        entity.Property(fc => fc.Code)
+        builder.Property(fc => fc.Code)
               .IsRequired()
               .HasMaxLength(6);
 
-        entity.HasIndex(fc => fc.Code)
+        builder.HasIndex(fc => fc.Code)
               .IsUnique();
 
-        entity.HasOne<User>()
+        builder.HasOne<User>()
               .WithOne()
               .HasForeignKey<FriendCode>(fc => fc.UserId)
               .OnDelete(DeleteBehavior.Cascade);

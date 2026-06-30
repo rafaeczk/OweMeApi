@@ -4,35 +4,37 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Data.Configurations;
 
-public class LedgerEventConfiguration : IEntityTypeConfiguration<LedgerEvent>
+internal class LedgerEventConfiguration : IEntityTypeConfiguration<LedgerEvent>
 {
-    public void Configure(EntityTypeBuilder<LedgerEvent> entity)
+    public void Configure(EntityTypeBuilder<LedgerEvent> builder)
     {
-        entity.HasIndex(e => e.InternalReference)
+        builder.HasKey(e => e.Id);
+
+        builder.HasIndex(e => e.InternalReference)
             .IsUnique();
 
-        entity.HasOne(e => e.Debt)
+        builder.HasOne(e => e.Debt)
             .WithMany(d => d.LedgerEvents)
             .HasForeignKey(e => e.DebtId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        entity.ConfigureAuditableEntryFields();
+        builder.ConfigureAuditableEntryFields();
 
         // DETAILS
 
-        entity.HasOne(e => e.Adjustment)
+        builder.HasOne(e => e.Adjustment)
             .WithOne(a => a.LedgerEvent)
             .HasForeignKey<LedgerEvent>(e => e.AdjustmentId)
             .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
-        entity.HasOne(e => e.Payment)
+        builder.HasOne(e => e.Payment)
             .WithOne(p => p.LedgerEvent)
             .HasForeignKey<LedgerEvent>(e => e.PaymentId)
             .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
-        entity.HasOne(e => e.PaymentStatusChange)
+        builder.HasOne(e => e.PaymentStatusChange)
             .WithOne(psc => psc.LedgerEvent)
             .HasForeignKey<LedgerEvent>(e => e.PaymentStatusChangeId)
             .IsRequired(false)

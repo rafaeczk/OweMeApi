@@ -1,6 +1,4 @@
-﻿using Domain.Common;
-
-namespace Domain.Enums;
+﻿namespace Domain.Enums;
 
 public static class DebtPaymentMethod
 {

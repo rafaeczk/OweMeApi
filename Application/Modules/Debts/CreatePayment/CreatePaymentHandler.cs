@@ -30,27 +30,29 @@ public class CreatePaymentHandler(
 
         try
         {
-            var payment = DebtPayment.Create(
+            var paymentEvent = debt.CreatePayment(
                 new Money(request.Amount),
                 user.Id,
                 (debt.CreditorId == user.Id) ? debt.DebtorId : debt.CreditorId,
                 request.PaymentMethod,
                 request.Note);
-            context.DebtPayments.Add(payment);
 
-            var paymentEvent = LedgerEvent.CreatePayment(debt.Id, payment.Id);
-            context.LedgerEvents.Add(paymentEvent);
-
-            payment.CreateStatusChange(DebtPaymentStatus.Pending, "Init status");
+            paymentEvent.Payment!.CreateStatusChange(DebtPaymentStatus.Pending, "Init status");
 
             await context.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);
 
-            return payment.Id;
+            return paymentEvent.Payment!.Id;
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Create payment error for {UserId}", user.Id);
+            try
+            {
+                await transaction.RollbackAsync(ct);
+            }
+            catch { }
+
+            logger.LogError(exception, "Create payment error for: UserId={UserId}, DebtId={DebtId}", user.Id, debt.Id);
 
             return HandlerResult.Failure("Technical error", ErrorCode.InternalError);
         }

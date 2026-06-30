@@ -1,12 +1,12 @@
-﻿using Domain.Common;
-using Application.Common.Interfaces;
+﻿using Application.Common.Interfaces;
+using Domain.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Infrastructure.Data.Interceptors;
 
-public class AuditableEntityInterceptor(IUserContext user) : SaveChangesInterceptor
+internal class AuditableEntityInterceptor(IUserContext user) : SaveChangesInterceptor
 {
     private readonly IUserContext _user = user;
 
@@ -28,26 +28,23 @@ public class AuditableEntityInterceptor(IUserContext user) : SaveChangesIntercep
     {
         if (context == null) return;
 
-        foreach(var entry in context.ChangeTracker.Entries<BaseAuditableEntity>())
+        foreach (var entry in context.ChangeTracker.Entries<BaseAuditableEntity>())
         {
-            if (entry.State != EntityState.Added && entry.State != EntityState.Modified && !entry.HasChangedOwnedEntities())
-                return;
-
-            var utcNow = DateTime.UtcNow;
-
-            if(entry.State == EntityState.Added)
+            if (entry.State is EntityState.Added or EntityState.Modified || entry.HasChangedOwnedEntities())
             {
-                entry.Entity.CreatedAt = utcNow;
-                entry.Entity.CreatedBy = _user.Id;
+                if (entry.State == EntityState.Added)
+                {
+                    entry.Entity.CreatedBy = _user.Id;
+                    entry.Entity.CreatedAt = DateTime.UtcNow;
+                }
+                entry.Entity.UpdatedBy = _user.Id;
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
             }
-
-            entry.Entity.UpdatedAt = utcNow;
-            entry.Entity.UpdatedBy = _user.Id;
         }
     }
 }
 
-public static class Extensions
+internal static class Extensions
 {
     public static bool HasChangedOwnedEntities(this EntityEntry entry) =>
         entry.References.Any(r =>

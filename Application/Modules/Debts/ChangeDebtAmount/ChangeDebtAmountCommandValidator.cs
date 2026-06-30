@@ -2,9 +2,9 @@
 
 namespace Application.Modules.Debts.ChangeDebtAmount;
 
-public class ChangeDebtAmountDTOValidator : AbstractValidator<ChangeDebtAmountDTO>
+public class ChangeDebtAmountCommandValidator : AbstractValidator<ChangeDebtAmountCommand>
 {
-    public ChangeDebtAmountDTOValidator()
+    public ChangeDebtAmountCommandValidator()
     {
         RuleFor(d => d.Amount)
             .NotEmpty().WithMessage("Amount is required")
@@ -13,5 +13,8 @@ public class ChangeDebtAmountDTOValidator : AbstractValidator<ChangeDebtAmountDT
 
         RuleFor(d => d.Note)
             .NotEmpty().WithMessage("Note is required");
+
+        RuleFor(d => d.DebtId)
+            .NotEmpty().WithMessage("Debt id is required");
     }
 }

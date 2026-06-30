@@ -2,9 +2,9 @@
 
 namespace Application.Modules.Debts.CreateDebt;
 
-public class CreateDebtDTOValidator : AbstractValidator<CreateDebtDTO>
+public class CreateDebtCommandValidator : AbstractValidator<CreateDebtCommand>
 {
-    public CreateDebtDTOValidator()
+    public CreateDebtCommandValidator()
     {
         RuleFor(d => d.DebtorId)
             .NotEmpty().WithMessage("Debtor id is required");

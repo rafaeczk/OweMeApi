@@ -8,11 +8,11 @@ public class DebtAdjustment : BaseEntity
     public Money Money { get; private set; } = null!;
     public string Note { get; private set; } = string.Empty;
 
-    public LedgerEvent LedgerEvent { get; private set; } = null!;
+    public LedgerEvent LedgerEvent { get; internal set; } = null!;
 
     private DebtAdjustment() { }
 
-    public static DebtAdjustment Create(Money money, string note)
+    internal static DebtAdjustment Create(Money money, string note)
         => new()
         {
             Money = money,

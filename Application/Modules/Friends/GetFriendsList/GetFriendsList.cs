@@ -18,7 +18,7 @@ public class GetFriendsListHandler(
             .Where(fs => (user.Id == fs.UserId || user.Id == fs.FriendId) && fs.IsAccepted)
             .Select(fs => new FriendListItemDTO(
                 fs.UserId == user.Id ? fs.Friend.Id : fs.User.Id,
-                fs.UserId == user.Id ? fs.Friend.Email : fs.User.Email,
+                fs.UserId == user.Id ? fs.Friend.Email! : fs.User.Email!,
                 fs.UserId == user.Id ? fs.Friend.FullName : fs.User.FullName,
                 fs.AcceptedAt ?? fs.CreatedAt
             ))

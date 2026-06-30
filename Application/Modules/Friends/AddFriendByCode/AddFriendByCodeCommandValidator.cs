@@ -2,9 +2,9 @@
 
 namespace Application.Modules.Friends.AddFriendByCode;
 
-public class AddFriendByCodeDTOValidator : AbstractValidator<AddFriendByCodeDTO>
+public class AddFriendByCodeCommandValidator : AbstractValidator<AddFriendByCodeCommand>
 {
-    public AddFriendByCodeDTOValidator()
+    public AddFriendByCodeCommandValidator()
     {
         RuleFor(d => d.Code)
             .NotEmpty().WithMessage("Code is required")

@@ -17,7 +17,11 @@ public interface IIdentityService
 
     Task<(bool, string)> CreateUser(string email, string fullName, string password);
 
-    Task<bool> AuthorizeAsync(Guid userId, string policyName);
+    Task<bool> SignIn(string email, string password);
+
+    Task<(bool, User)> SignUp(string email, string password, string fullName);
+
+    Task LogOut();
 
     Task<bool> ResetPassword(Guid userId, string newPassword);
 }

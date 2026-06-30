@@ -1,7 +1,8 @@
 ﻿using Application.Common.Interfaces;
 using Application.Common.Extensions;
+using Microsoft.AspNetCore.Http;
 
-namespace WebAPI.Contexts;
+namespace Infrastructure.Identity;
 
 public class UserContext(IHttpContextAccessor accessor) : IUserContext
 {

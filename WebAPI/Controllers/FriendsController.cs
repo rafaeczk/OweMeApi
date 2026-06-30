@@ -6,18 +6,17 @@ using Application.Modules.Friends.GetFriendRequestsList;
 using Application.Modules.Friends.GetFriendsList;
 using Application.Modules.Friends.RequestFriendByUserId;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPI.Controllers;
 
 [Route("api/friends")]
 [ApiController]
+//[Authorize(Policy = AuthPolicies.AdminOrUser)]
 public class FriendsController(IMediator mediator) : ControllerBase
 {
     private readonly IMediator _mediator = mediator;
 
-    [Authorize(Policy = "User")]
     [HttpGet("list")]
     public async Task<ActionResult<List<FriendListItemDTO>>> GetFriendsList()
     {
@@ -26,7 +25,6 @@ public class FriendsController(IMediator mediator) : ControllerBase
         return result.ToActionResult();
     }
 
-    [Authorize(Policy = "User")]
     [HttpGet("requests")]
     public async Task<ActionResult<List<FriendRequestDTO>>> GetFriendRequestsList()
     {
@@ -35,7 +33,6 @@ public class FriendsController(IMediator mediator) : ControllerBase
         return result.ToActionResult();
     }
 
-    [Authorize(Policy = "User")]
     [HttpPatch("accept-request")]
     public async Task<ActionResult> AcceptFriendRequest([FromBody] FriendRequestActionDTO dto)
     {
@@ -44,7 +41,6 @@ public class FriendsController(IMediator mediator) : ControllerBase
         return result.ToActionResult();
     }
 
-    [Authorize(Policy = "User")]
     [HttpDelete("decline-request")]
     public async Task<ActionResult> DeclineFriendRequest([FromBody] FriendRequestActionDTO dto)
     {
@@ -53,7 +49,6 @@ public class FriendsController(IMediator mediator) : ControllerBase
         return result.ToActionResult();
     }
 
-    [Authorize(Policy = "User")]
     [HttpPost("add-friend-by-code")]
     public async Task<ActionResult<AddFriendResponseDTO>> AddFriendByCode(AddFriendByCodeDTO dto)
     {
@@ -62,7 +57,6 @@ public class FriendsController(IMediator mediator) : ControllerBase
         return result.ToActionResult();
     }
 
-    [Authorize(Policy = "User")]
     [HttpPost("request-friend-by-user-id")]
     public async Task<ActionResult<AddFriendResponseDTO>> RequestFriendByUserId(RequestFriendByUserIdDTO dto)
     {

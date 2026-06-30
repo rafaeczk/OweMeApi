@@ -17,7 +17,7 @@ public class CreateDebtHandler(
 {
     public async Task<HandlerResult<Guid>> Handle(CreateDebtCommand request, CancellationToken ct)
     {
-        if (identityService.GetUserEmail(request.DebtorId) == null)
+        if (await identityService.GetUserEmail(request.DebtorId) == null)
             return HandlerResult.Failure("Debtor not found", ErrorCode.NotFound);
 
         if (user.Id == request.DebtorId)

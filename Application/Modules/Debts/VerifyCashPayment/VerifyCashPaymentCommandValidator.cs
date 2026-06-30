@@ -3,9 +3,9 @@ using FluentValidation;
 
 namespace Application.Modules.Debts.VerifyCashPayment;
 
-public class VerifyCashPaymentDTOValidator : AbstractValidator<VerifyCashPaymentDTO>
+public class VerifyCashPaymentCommandValidator : AbstractValidator<VerifyCashPaymentCommand>
 {
-    public VerifyCashPaymentDTOValidator()
+    public VerifyCashPaymentCommandValidator()
     {
         RuleFor(d => d.PaymentId)
             .NotEmpty().WithMessage("Payment id is required");

@@ -1,20 +1,20 @@
 ﻿using Application.Common.DTOs;
 using Application.Common.Interfaces;
 using Domain.Entities;
-using Microsoft.AspNetCore.Authorization;
+using Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Identity;
 
 public class IdentityService(
-    UserManager<AppUser> userManager,
-    IUserClaimsPrincipalFactory<AppUser> userClaimsPrincipalFactory,
-    IAuthorizationService authorizationService) : IIdentityService
+    UserManager<User> userManager,
+    SignInManager<User> signInManager,
+    RoleManager<IdentityRole<Guid>> roleManager) : IIdentityService
 {
-    private readonly UserManager<AppUser> _userManager = userManager;
-    private readonly IUserClaimsPrincipalFactory<AppUser> _userClaimsPrincipalFactory = userClaimsPrincipalFactory;
-    private readonly IAuthorizationService _authorizationService = authorizationService;
+    private readonly UserManager<User> _userManager = userManager;
+    private readonly SignInManager<User> _signInManager = signInManager;
+    private readonly RoleManager<IdentityRole<Guid>> _roleManager = roleManager;
 
     public async Task<string?> GetUserName(Guid userId)
     {
@@ -51,7 +51,7 @@ public class IdentityService(
 
             userDtos.Add(new UserDTO(
                     user.Id,
-                    user.Email,
+                    user.Email!,
                     user.FullName,
                     new UserRoleDTO(role.First())
                 ));
@@ -79,7 +79,7 @@ public class IdentityService(
 
     public async Task<(bool, string)> CreateUser(string email, string fullName, string password)
     {
-        AppUser user = new()
+        User user = new()
         {
             Email = email,
             UserName = email,
@@ -91,20 +91,36 @@ public class IdentityService(
         return (result.Succeeded, user.Id.ToString());
     }
 
-    public async Task<bool> AuthorizeAsync(Guid userId, string policyName)
+    public async Task<bool> SignIn(string email, string password)
     {
-        var user = await _userManager.FindByIdAsync(userId.ToString());
+        var user = await _userManager.FindByNameAsync(email);
 
-        if (user == null)
-        {
-            return false;
-        }
+        if (user == null) return false;
 
-        var principal = await _userClaimsPrincipalFactory.CreateAsync(user);
-
-        var result = await _authorizationService.AuthorizeAsync(principal, policyName);
+        var result = await _signInManager.PasswordSignInAsync(user, password, true, false);
 
         return result.Succeeded;
+    }
+
+    public async Task<(bool, User)> SignUp(string email, string password, string fullName)
+    {
+        var user = new User()
+        {
+            UserName = email,
+            Email = email,
+            FullName = fullName
+        };
+
+        var result = await _userManager.CreateAsync(user, password);
+
+        var roleResult = await _userManager.AddToRoleAsync(user, UserRole.User);
+
+        return (result.Succeeded && roleResult.Succeeded, user);
+    }
+
+    public async Task LogOut()
+    {
+        await _signInManager.SignOutAsync();
     }
 
     public async Task<bool> ResetPassword(Guid userId, string newPassword)

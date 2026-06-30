@@ -1,7 +1,6 @@
 ﻿using Application.Common.Interfaces;
 using Domain.Common;
 using Domain.Entities;
-using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -11,8 +10,9 @@ using System.Reflection;
 
 namespace Infrastructure.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>(options), IAppDbContext
+internal class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<User, IdentityRole<Guid>, Guid>(options), IAppDbContext
 {
+    public DbSet<User> DomainUsers => Set<User>();
     public DbSet<FriendCode> FriendCodes => Set<FriendCode>();
     public DbSet<Friendship> Friendships => Set<Friendship>();
 
@@ -40,13 +40,13 @@ public static class EntityTypeBuilderExtensions
     public static void ConfigureAuditableEntryFields<T>(this EntityTypeBuilder<T> entity)
         where T : BaseAuditableEntity
     {
-        entity.HasOne<AppUser>()
+        entity.HasOne<User>()
             .WithMany()
             .HasForeignKey(e => e.CreatedBy)
             .OnDelete(DeleteBehavior.Restrict)
             .IsRequired(false);
 
-        entity.HasOne<AppUser>()
+        entity.HasOne<User>()
             .WithMany()
             .HasForeignKey(e => e.UpdatedBy)
             .OnDelete(DeleteBehavior.Restrict)
