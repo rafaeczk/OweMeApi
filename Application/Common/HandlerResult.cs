@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-using Application.Common.Exceptions;
 
 namespace Application.Common;
 
@@ -9,23 +8,24 @@ public enum ErrorCode { None, NotFound, BadRequest, Conflict, Unauthorized, Inte
 public class HandlerResult
 {
     public bool IsSuccess { get; }
-    public string? Error { get; }
+    public IEnumerable<string> Errors { get; }
     public ErrorCode ErrorCode { get; }
 
-    protected HandlerResult(bool isSuccess, string? error, ErrorCode errorCode)
+    protected HandlerResult(bool isSuccess, IEnumerable<string> errors, ErrorCode errorCode)
     {
         IsSuccess = isSuccess;
-        Error = error;
+        Errors = errors;
         ErrorCode = errorCode;
     }
 
     public static implicit operator HandlerResult(HandlerFailureResult failure)
     {
-        return new(false, failure.Error, failure.ErrorCode);
+        return new(false, failure.Errors, failure.ErrorCode);
     }
 
-    public static HandlerResult Success() => new(true, null, ErrorCode.None);
-    public static HandlerFailureResult Failure(string error, ErrorCode errorCode) => new(error, errorCode);
+    public static HandlerResult Success() => new(true, [], ErrorCode.None);
+    public static HandlerFailureResult Failure(string error, ErrorCode errorCode) => new([error], errorCode);
+    public static HandlerFailureResult Failure(IEnumerable<string> errors, ErrorCode errorCode) => new(errors, errorCode);
 
     protected ActionResult CreateActionResult(object? value)
     {
@@ -41,7 +41,7 @@ public class HandlerResult
                 ErrorCode.Unauthorized => StatusCodes.Status401Unauthorized,
                 _ => StatusCodes.Status400BadRequest
             },
-            Title = Error ?? "Unexpected error occured"
+            Extensions = { { "errors", new Dictionary<string, object>() { { "general", Errors } } } }
         };
 
         return ErrorCode switch
@@ -60,12 +60,12 @@ public class HandlerResult<T> : HandlerResult
 {
     public T? Value { get; }
 
-    private HandlerResult(T value) : base(true, null, ErrorCode.None) => Value = value;
-    private HandlerResult(string error, ErrorCode errorCode) : base(false, error, errorCode) => Value = default;
+    private HandlerResult(T value) : base(true, [], ErrorCode.None) => Value = value;
+    private HandlerResult(IEnumerable<string> errors, ErrorCode errorCode) : base(false, errors, errorCode) => Value = default;
 
     public static implicit operator HandlerResult<T>(HandlerFailureResult failure)
     {
-        return new(failure.Error, failure.ErrorCode);
+        return new(failure.Errors, failure.ErrorCode);
     }
 
     public static implicit operator HandlerResult<T>(T value)
@@ -78,8 +78,8 @@ public class HandlerResult<T> : HandlerResult
     public override ActionResult ToActionResult() => CreateActionResult(Value);
 }
 
-public class HandlerFailureResult(string error, ErrorCode errorCode)
+public class HandlerFailureResult(IEnumerable<string> errors, ErrorCode errorCode)
 {
-    public string Error { get; } = error;
+    public IEnumerable<string> Errors { get; } = errors;
     public ErrorCode ErrorCode { get; } = errorCode;
 }

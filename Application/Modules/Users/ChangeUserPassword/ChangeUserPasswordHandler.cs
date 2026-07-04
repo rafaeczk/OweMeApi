@@ -10,13 +10,11 @@ public class ChangeUserPasswordHandler(IIdentityService identityService) : IRequ
 {
     public async Task<HandlerResult> Handle(ChangeUserPasswordCommand request, CancellationToken ct)
     {
-        var (userFound, _) = await identityService.GetUserById(request.UserId);
+        var result = await identityService.ResetPassword(request.UserId, request.Password);
 
-        if (!userFound)
-            return HandlerResult.Failure("User not found", ErrorCode.NotFound);
+        if (!result.IsSuccess)
+            return HandlerResult.Failure(result.Errors, ErrorCode.BadRequest);
 
-        bool success = await identityService.ResetPassword(request.UserId, request.Password);
-
-        return success ? HandlerResult.Success() : HandlerResult.Failure("Reset password error", ErrorCode.BadRequest);
+        return HandlerResult.Success();
     }
 }

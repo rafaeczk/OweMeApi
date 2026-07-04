@@ -1,10 +1,10 @@
 ﻿using Application.Common;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Application.Common.Interfaces;
 using Application.Modules.Debts._Filters;
-using Microsoft.Extensions.Logging;
 using Domain.Enums;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Modules.Debts.VerifyCashPayment;
 
@@ -20,17 +20,17 @@ public class VerifyCashPaymentHandler(
         var payment = await context.DebtPayments
             .DebtPaymentReceiverOnly(user)
             .Include(p => p.LedgerEvent)
-            .Include(p => p.StatusChanges)
+                .ThenInclude(e => e.Debt)
             .SingleOrDefaultAsync(p => p.Id == request.PaymentId, ct);
 
         if (payment == null)
             return HandlerResult.Failure("Payment not found", ErrorCode.NotFound);
 
-        var currentPaymentStatus = payment.StatusChanges
+        var currentPaymentStatus = await context.DebtPaymentStatusChanges
             .Where(sc => sc.PaymentId == payment.Id)
             .OrderByDescending(sc => sc.LedgerEvent.CreatedAt)
             .Select(sc => sc.Status)
-            .FirstOrDefault();
+            .FirstOrDefaultAsync(ct);
 
         if (currentPaymentStatus != DebtPaymentStatus.Pending)
             return HandlerResult.Failure("You have already verified this cash payment", ErrorCode.BadRequest);
@@ -39,7 +39,10 @@ public class VerifyCashPaymentHandler(
 
         try
         {
-            payment.CreateStatusChange(request.Status, request.Note);
+            var statusChange = payment.CreateStatusChange(request.Status, request.Note);
+
+            context.DebtPaymentStatusChanges.Add(statusChange);
+            context.LedgerEvents.Add(statusChange.LedgerEvent);
 
             await context.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);
@@ -48,7 +51,13 @@ public class VerifyCashPaymentHandler(
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Payment verification error for {UserId}", user.Id);
+            try
+            {
+                await transaction.RollbackAsync(ct);
+            }
+            catch { }
+
+            logger.LogError(exception, "Payment verification error for: UserId={UserId}, PaymentId={PaymentId}", user.Id, payment.Id);
 
             return HandlerResult.Failure("Technical error", ErrorCode.InternalError);
         }

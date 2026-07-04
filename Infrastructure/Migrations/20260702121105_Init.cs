@@ -53,19 +53,6 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DebtAdjustments",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Amount = table.Column<decimal>(type: "numeric", nullable: false),
-                    Note = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DebtAdjustments", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
@@ -172,34 +159,6 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DebtPayments",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Amount = table.Column<decimal>(type: "numeric", nullable: false),
-                    PayerId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ReceiverId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Method = table.Column<string>(type: "text", nullable: false),
-                    Note = table.Column<string>(type: "text", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DebtPayments", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_DebtPayments_AspNetUsers_PayerId",
-                        column: x => x.PayerId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_DebtPayments_AspNetUsers_ReceiverId",
-                        column: x => x.ReceiverId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Debts",
                 columns: table => new
                 {
@@ -277,26 +236,6 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DebtPaymentStatusChanges",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    PaymentId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Status = table.Column<string>(type: "text", nullable: false),
-                    Note = table.Column<string>(type: "text", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DebtPaymentStatusChanges", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_DebtPaymentStatusChanges_DebtPayments_PaymentId",
-                        column: x => x.PaymentId,
-                        principalTable: "DebtPayments",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "LedgerEvents",
                 columns: table => new
                 {
@@ -304,10 +243,6 @@ namespace Infrastructure.Migrations
                     DebtId = table.Column<Guid>(type: "uuid", nullable: false),
                     EventType = table.Column<string>(type: "text", nullable: false),
                     InternalReference = table.Column<string>(type: "text", nullable: false),
-                    AdjustmentId = table.Column<Guid>(type: "uuid", nullable: true),
-                    PaymentId = table.Column<Guid>(type: "uuid", nullable: true),
-                    PaymentStatusChangeId = table.Column<Guid>(type: "uuid", nullable: true),
-                    DebtPaymentId = table.Column<Guid>(type: "uuid", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedBy = table.Column<Guid>(type: "uuid", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -329,32 +264,91 @@ namespace Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_LedgerEvents_DebtAdjustments_AdjustmentId",
-                        column: x => x.AdjustmentId,
-                        principalTable: "DebtAdjustments",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_LedgerEvents_DebtPaymentStatusChanges_PaymentStatusChangeId",
-                        column: x => x.PaymentStatusChangeId,
-                        principalTable: "DebtPaymentStatusChanges",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_LedgerEvents_DebtPayments_DebtPaymentId",
-                        column: x => x.DebtPaymentId,
-                        principalTable: "DebtPayments",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_LedgerEvents_DebtPayments_PaymentId",
-                        column: x => x.PaymentId,
-                        principalTable: "DebtPayments",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
                         name: "FK_LedgerEvents_Debts_DebtId",
                         column: x => x.DebtId,
                         principalTable: "Debts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DebtAdjustments",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    LedgerEventId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Amount = table.Column<decimal>(type: "numeric", nullable: false),
+                    Note = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DebtAdjustments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DebtAdjustments_LedgerEvents_LedgerEventId",
+                        column: x => x.LedgerEventId,
+                        principalTable: "LedgerEvents",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DebtPayments",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    LedgerEventId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Amount = table.Column<decimal>(type: "numeric", nullable: false),
+                    PayerId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ReceiverId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Method = table.Column<string>(type: "text", nullable: false),
+                    Note = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DebtPayments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DebtPayments_AspNetUsers_PayerId",
+                        column: x => x.PayerId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_DebtPayments_AspNetUsers_ReceiverId",
+                        column: x => x.ReceiverId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_DebtPayments_LedgerEvents_LedgerEventId",
+                        column: x => x.LedgerEventId,
+                        principalTable: "LedgerEvents",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DebtPaymentStatusChanges",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    LedgerEventId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PaymentId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    Note = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DebtPaymentStatusChanges", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DebtPaymentStatusChanges_DebtPayments_PaymentId",
+                        column: x => x.PaymentId,
+                        principalTable: "DebtPayments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_DebtPaymentStatusChanges_LedgerEvents_LedgerEventId",
+                        column: x => x.LedgerEventId,
+                        principalTable: "LedgerEvents",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -403,6 +397,18 @@ namespace Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_DebtAdjustments_LedgerEventId",
+                table: "DebtAdjustments",
+                column: "LedgerEventId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DebtPayments_LedgerEventId",
+                table: "DebtPayments",
+                column: "LedgerEventId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_DebtPayments_PayerId",
                 table: "DebtPayments",
                 column: "PayerId");
@@ -411,6 +417,12 @@ namespace Infrastructure.Migrations
                 name: "IX_DebtPayments_ReceiverId",
                 table: "DebtPayments",
                 column: "ReceiverId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DebtPaymentStatusChanges_LedgerEventId",
+                table: "DebtPaymentStatusChanges",
+                column: "LedgerEventId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_DebtPaymentStatusChanges_PaymentId",
@@ -439,12 +451,6 @@ namespace Infrastructure.Migrations
                 column: "FriendId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_LedgerEvents_AdjustmentId",
-                table: "LedgerEvents",
-                column: "AdjustmentId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_LedgerEvents_CreatedBy",
                 table: "LedgerEvents",
                 column: "CreatedBy");
@@ -455,26 +461,9 @@ namespace Infrastructure.Migrations
                 column: "DebtId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_LedgerEvents_DebtPaymentId",
-                table: "LedgerEvents",
-                column: "DebtPaymentId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_LedgerEvents_InternalReference",
                 table: "LedgerEvents",
                 column: "InternalReference",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_LedgerEvents_PaymentId",
-                table: "LedgerEvents",
-                column: "PaymentId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_LedgerEvents_PaymentStatusChangeId",
-                table: "LedgerEvents",
-                column: "PaymentStatusChangeId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -502,28 +491,28 @@ namespace Infrastructure.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "FriendCodes");
-
-            migrationBuilder.DropTable(
-                name: "Friendships");
-
-            migrationBuilder.DropTable(
-                name: "LedgerEvents");
-
-            migrationBuilder.DropTable(
-                name: "AspNetRoles");
-
-            migrationBuilder.DropTable(
                 name: "DebtAdjustments");
 
             migrationBuilder.DropTable(
                 name: "DebtPaymentStatusChanges");
 
             migrationBuilder.DropTable(
-                name: "Debts");
+                name: "FriendCodes");
+
+            migrationBuilder.DropTable(
+                name: "Friendships");
+
+            migrationBuilder.DropTable(
+                name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "DebtPayments");
+
+            migrationBuilder.DropTable(
+                name: "LedgerEvents");
+
+            migrationBuilder.DropTable(
+                name: "Debts");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

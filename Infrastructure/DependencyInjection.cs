@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure;
 
@@ -17,7 +18,10 @@ public static class DependencyInjection
     public static void AddInfrastructureServices(this IHostApplicationBuilder builder)
     {
         builder.Services
-            .AddIdentity<User, IdentityRole<Guid>>()
+            .AddIdentity<User, IdentityRole<Guid>>(options =>
+            {
+                options.User.RequireUniqueEmail = true;
+            })
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
 
@@ -35,7 +39,8 @@ public static class DependencyInjection
             var auditableEntityInterceptor = sp.GetRequiredService<AuditableEntityInterceptor>();
 
             options.UseNpgsql(connectionString)
-                   .AddInterceptors(auditableEntityInterceptor);
+                .AddInterceptors(auditableEntityInterceptor)
+                .LogTo(Console.WriteLine, LogLevel.Information);
         });
 
         builder.Services.ConfigureApplicationCookie(options =>

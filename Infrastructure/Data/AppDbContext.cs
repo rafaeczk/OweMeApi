@@ -4,6 +4,7 @@ using Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Reflection;
@@ -38,6 +39,8 @@ internal class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDb
     {
         return Entry(entity);
     }
+
+    public new ChangeTracker ChangeTracker => base.ChangeTracker;
 }
 
 public static class EntityTypeBuilderExtensions

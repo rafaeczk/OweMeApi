@@ -16,7 +16,7 @@ public class EditDebtInformationHandler(
     {
         var debt = await context.Debts
             .DebtCreditorOnly(user)
-            .FirstOrDefaultAsync(d => d.Id == request.DebtId, ct);
+            .SingleOrDefaultAsync(d => d.Id == request.DebtId, ct);
 
         if (debt == null)
             return HandlerResult.Failure("Debt not found", ErrorCode.NotFound);

@@ -1,27 +1,22 @@
 ﻿using Application.Common.DTOs;
+using Domain.Common;
 using Domain.Entities;
 
 namespace Application.Common.Interfaces;
 
 public interface IIdentityService
 {
-    Task<string?> GetUserName(Guid userId);
+    Task<bool> UserExists(Guid userId);
 
-    Task<string?> GetUserEmail(Guid userId);
-
-    Task<(bool, User)> GetUserById(Guid userId);
+    Task<Result<UserDTO>> GetUser(Guid userId);
 
     Task<List<UserDTO>> GetUsersAsync();
 
-    Task<(bool, string)> GetUserRole(Guid userId);
+    Task<Result> SignIn(string email, string password);
 
-    Task<(bool, string)> CreateUser(string email, string fullName, string password);
-
-    Task<bool> SignIn(string email, string password);
-
-    Task<(bool, User)> SignUp(string email, string password, string fullName);
+    Task<Result<User>> SignUp(string email, string password, string fullName);
 
     Task LogOut();
 
-    Task<bool> ResetPassword(Guid userId, string newPassword);
+    Task<Result> ResetPassword(Guid userId, string newPassword);
 }

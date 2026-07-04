@@ -1,7 +1,9 @@
 ﻿using Application.Common;
 using Application.Common.Interfaces;
 using Application.Modules.Debts._Filters;
+using Domain.Entities;
 using Domain.Enums;
+using Domain.Exceptions;
 using Domain.ValueObjects;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +22,9 @@ public class CreatePaymentHandler(
     {
         var debt = await context.Debts
             .DebtOwnerOnly(user)
-            .FirstOrDefaultAsync(d => d.Id == request.DebtId, ct);
+            .Where(d => d.Id == request.DebtId)
+            .Include(d => d.LedgerEvents)
+            .SingleOrDefaultAsync(ct);
 
         if (debt == null)
             return HandlerResult.Failure("Debt not found", ErrorCode.NotFound);
@@ -36,12 +40,23 @@ public class CreatePaymentHandler(
                 request.PaymentMethod,
                 request.Note);
 
-            payment.CreateStatusChange(DebtPaymentStatus.Pending, "Init status");
+            var statusChange = payment.CreateStatusChange(DebtPaymentStatus.Pending, "Init status");
+
+            context.DebtPayments.Add(payment);
+            context.LedgerEvents.Add(payment.LedgerEvent);
+            context.DebtPaymentStatusChanges.Add(statusChange);
+            context.LedgerEvents.Add(statusChange.LedgerEvent);
 
             await context.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);
 
             return payment.Id;
+        }
+        catch (DebtIsSettledException exception)
+        {
+            logger.LogError(exception, "Change debt amount error for: UserId={UserId}, DebtId={DebtId}", user.Id, debt.Id);
+
+            return HandlerResult.Failure("Debt is settled", ErrorCode.BadRequest);
         }
         catch (Exception exception)
         {

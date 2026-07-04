@@ -2,9 +2,9 @@
 
 namespace Application.Modules.Auth.SignUp;
 
-public class SignUpDTOValidator : AbstractValidator<SignUpDTO>
+public class SignUpCommandValidator : AbstractValidator<SignUpCommand>
 {
-    public SignUpDTOValidator()
+    public SignUpCommandValidator()
     {
         RuleFor(d => d.Email)
             .NotEmpty().WithMessage("Email is required")

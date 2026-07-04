@@ -68,11 +68,17 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("LedgerEventId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Note")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LedgerEventId")
+                        .IsUnique();
 
                     b.ToTable("DebtAdjustments");
                 });
@@ -81,6 +87,9 @@ namespace Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("LedgerEventId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Method")
@@ -98,6 +107,9 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("LedgerEventId")
+                        .IsUnique();
+
                     b.HasIndex("PayerId");
 
                     b.HasIndex("ReceiverId");
@@ -111,6 +123,9 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("LedgerEventId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Note")
                         .HasColumnType("text");
 
@@ -122,6 +137,9 @@ namespace Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LedgerEventId")
+                        .IsUnique();
 
                     b.HasIndex("PaymentId");
 
@@ -179,9 +197,6 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("AdjustmentId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -199,12 +214,6 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("PaymentId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("PaymentStatusChangeId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -213,20 +222,11 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AdjustmentId")
-                        .IsUnique();
-
                     b.HasIndex("CreatedBy");
 
                     b.HasIndex("DebtId");
 
                     b.HasIndex("InternalReference")
-                        .IsUnique();
-
-                    b.HasIndex("PaymentId")
-                        .IsUnique();
-
-                    b.HasIndex("PaymentStatusChangeId")
                         .IsUnique();
 
                     b.HasIndex("UpdatedBy");
@@ -458,6 +458,12 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.DebtAdjustment", b =>
                 {
+                    b.HasOne("Domain.Entities.LedgerEvent", "LedgerEvent")
+                        .WithOne("Adjustment")
+                        .HasForeignKey("Domain.Entities.DebtAdjustment", "LedgerEventId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.OwnsOne("Domain.ValueObjects.Money", "Money", b1 =>
                         {
                             b1.Property<Guid>("DebtAdjustmentId")
@@ -475,12 +481,20 @@ namespace Infrastructure.Migrations
                                 .HasForeignKey("DebtAdjustmentId");
                         });
 
+                    b.Navigation("LedgerEvent");
+
                     b.Navigation("Money")
                         .IsRequired();
                 });
 
             modelBuilder.Entity("Domain.Entities.DebtPayment", b =>
                 {
+                    b.HasOne("Domain.Entities.LedgerEvent", "LedgerEvent")
+                        .WithOne("Payment")
+                        .HasForeignKey("Domain.Entities.DebtPayment", "LedgerEventId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Domain.Entities.User", "Payer")
                         .WithMany()
                         .HasForeignKey("PayerId")
@@ -510,6 +524,8 @@ namespace Infrastructure.Migrations
                                 .HasForeignKey("DebtPaymentId");
                         });
 
+                    b.Navigation("LedgerEvent");
+
                     b.Navigation("Money")
                         .IsRequired();
 
@@ -520,11 +536,19 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.DebtPaymentStatusChange", b =>
                 {
+                    b.HasOne("Domain.Entities.LedgerEvent", "LedgerEvent")
+                        .WithOne("PaymentStatusChange")
+                        .HasForeignKey("Domain.Entities.DebtPaymentStatusChange", "LedgerEventId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Domain.Entities.DebtPayment", "Payment")
                         .WithMany("StatusChanges")
                         .HasForeignKey("PaymentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("LedgerEvent");
 
                     b.Navigation("Payment");
                 });
@@ -559,11 +583,6 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.LedgerEvent", b =>
                 {
-                    b.HasOne("Domain.Entities.DebtAdjustment", "Adjustment")
-                        .WithOne("LedgerEvent")
-                        .HasForeignKey("Domain.Entities.LedgerEvent", "AdjustmentId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("Domain.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("CreatedBy")
@@ -575,28 +594,12 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.DebtPayment", "Payment")
-                        .WithOne("LedgerEvent")
-                        .HasForeignKey("Domain.Entities.LedgerEvent", "PaymentId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Domain.Entities.DebtPaymentStatusChange", "PaymentStatusChange")
-                        .WithOne("LedgerEvent")
-                        .HasForeignKey("Domain.Entities.LedgerEvent", "PaymentStatusChangeId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("Domain.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("UpdatedBy")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("Adjustment");
-
                     b.Navigation("Debt");
-
-                    b.Navigation("Payment");
-
-                    b.Navigation("PaymentStatusChange");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -655,24 +658,18 @@ namespace Infrastructure.Migrations
                     b.Navigation("LedgerEvents");
                 });
 
-            modelBuilder.Entity("Domain.Entities.DebtAdjustment", b =>
-                {
-                    b.Navigation("LedgerEvent")
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Domain.Entities.DebtPayment", b =>
                 {
-                    b.Navigation("LedgerEvent")
-                        .IsRequired();
-
                     b.Navigation("StatusChanges");
                 });
 
-            modelBuilder.Entity("Domain.Entities.DebtPaymentStatusChange", b =>
+            modelBuilder.Entity("Domain.Entities.LedgerEvent", b =>
                 {
-                    b.Navigation("LedgerEvent")
-                        .IsRequired();
+                    b.Navigation("Adjustment");
+
+                    b.Navigation("Payment");
+
+                    b.Navigation("PaymentStatusChange");
                 });
 #pragma warning restore 612, 618
         }

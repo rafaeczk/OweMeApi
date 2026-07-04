@@ -7,16 +7,18 @@ namespace Domain.Entities;
 
 public class DebtPayment : BaseEntity
 {
+    public Guid LedgerEventId { get; private set; }
     public Money Money { get; private set; } = null!;
     public Guid PayerId { get; private set; }
     public Guid ReceiverId { get; private set; }
     public string Method { get; private set; } = null!;
     public string? Note { get; private set; }
 
-    public ICollection<DebtPaymentStatusChange> StatusChanges { get; private set; } = [];
-    public LedgerEvent LedgerEvent { get; internal set; } = null!;
+    public LedgerEvent LedgerEvent { get; private set; } = null!;
     public User Payer { get; private set; } = null!;
     public User Receiver { get; private set; } = null!;
+
+    public ICollection<DebtPaymentStatusChange> StatusChanges { get; private set; } = [];
 
     private DebtPayment() { }
 
@@ -27,7 +29,7 @@ public class DebtPayment : BaseEntity
 
         return new()
         {
-            Id = Guid.NewGuid(),
+            //Id = Guid.NewGuid(),
             Money = money,
             PayerId = payerId,
             ReceiverId = receiverId,
@@ -36,7 +38,13 @@ public class DebtPayment : BaseEntity
         };
     }
 
-    public void CreateStatusChange(string status, string? note)
+    internal void SetLedgerEvent(LedgerEvent ledgerEvent)
+    {
+        LedgerEvent = ledgerEvent;
+        LedgerEventId = ledgerEvent.Id;
+    }
+
+    public DebtPaymentStatusChange CreateStatusChange(string status, string? note)
     {
         var statusChange = DebtPaymentStatusChange.Create(this, status, note);
 
@@ -45,5 +53,7 @@ public class DebtPayment : BaseEntity
 
         StatusChanges.Add(statusChange);
         LedgerEvent.Debt.LedgerEvents.Add(statusChangeEvent);
+
+        return statusChange;
     }
 }

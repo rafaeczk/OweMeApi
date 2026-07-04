@@ -1,5 +1,6 @@
 ﻿using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Application.Common.Interfaces;
@@ -19,4 +20,6 @@ public interface IAppDbContext
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct = default);
 
     T Entry<T>(T entity);
+
+    ChangeTracker ChangeTracker { get; }
 }

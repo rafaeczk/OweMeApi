@@ -77,8 +77,6 @@ public class Debt : BaseAuditableEntity
 
         var adjustmentEvent = LedgerEvent.CreateAdjustment(this, adjustment);
 
-        adjustment.LedgerEvent = adjustmentEvent;
-
         LedgerEvents.Add(adjustmentEvent);
 
         return adjustment;
@@ -97,8 +95,6 @@ public class Debt : BaseAuditableEntity
             note);
 
         var paymentEvent = LedgerEvent.CreatePayment(this, payment);
-
-        payment.LedgerEvent = paymentEvent;
 
         LedgerEvents.Add(paymentEvent);
 

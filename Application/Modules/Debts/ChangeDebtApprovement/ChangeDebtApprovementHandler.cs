@@ -1,11 +1,12 @@
 ﻿using Application.Common;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Application.Common.Interfaces;
-using Microsoft.Extensions.Logging;
 using Application.Modules.Debts._Filters;
 using Domain.Entities;
 using Domain.Enums;
+using Domain.Exceptions;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Modules.Debts.ChangeDebtApprovement;
 
@@ -21,7 +22,9 @@ public class ChangeDebtApprovementHandler(
         var debt = await context.Debts
             .DebtOwnerOnly(user)
             .Include(d => d.LedgerEvents)
-            .FirstOrDefaultAsync(d => d.Id == request.DebtId, ct);
+                .ThenInclude(e => e.Payment)
+                    .ThenInclude(p => p.StatusChanges)
+            .SingleOrDefaultAsync(d => d.Id == request.DebtId, ct);
 
         if (debt == null)
             return HandlerResult.Failure("Debt not found", ErrorCode.NotFound);
@@ -47,7 +50,8 @@ public class ChangeDebtApprovementHandler(
             {
                 var eventType = request.Approve ? LedgerEventTypes.CreditorDebtApprovement : LedgerEventTypes.CreditorDebtDisapprovement;
 
-                debt.CreateApprovement(eventType);
+                var approvementEvent = debt.CreateApprovement(eventType);
+                context.LedgerEvents.Add(approvementEvent);
 
                 if (debtorApproves && eventType == LedgerEventTypes.CreditorDebtApprovement)
                     shouldSettle = true;
@@ -61,7 +65,8 @@ public class ChangeDebtApprovementHandler(
             {
                 var eventType = request.Approve ? LedgerEventTypes.DebtorDebtApprovement : LedgerEventTypes.DebtorDebtDisapprovement;
 
-                debt.CreateApprovement(eventType);
+                var approvementEvent = debt.CreateApprovement(eventType);
+                context.LedgerEvents.Add(approvementEvent);
 
                 if (creditorApproves && eventType == LedgerEventTypes.DebtorDebtApprovement)
                     shouldSettle = true;
@@ -74,15 +79,30 @@ public class ChangeDebtApprovementHandler(
                 return HandlerResult.Failure("Debt not found", ErrorCode.NotFound);
 
             if (shouldSettle)
-                debt.CreateSettlement();
+            {
+                var settlementEvent = debt.CreateSettlement();
+                context.LedgerEvents.Add(settlementEvent);
+            }
 
             await context.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);
 
             return HandlerResult.Success();
         }
+        catch (DebtIsSettledException exception)
+        {
+            logger.LogError(exception, "Change debt amount error for: UserId={UserId}, DebtId={DebtId}", user.Id, debt.Id);
+
+            return HandlerResult.Failure("Debt is settled", ErrorCode.BadRequest);
+        }
         catch (Exception exception)
         {
+            try
+            {
+                await transaction.RollbackAsync(ct);
+            }
+            catch { }
+
             logger.LogError(exception, "Change debt approvement error for {UserId}", user.Id);
 
             return HandlerResult.Failure("Technical error", ErrorCode.InternalError);

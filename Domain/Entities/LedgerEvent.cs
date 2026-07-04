@@ -7,19 +7,14 @@ namespace Domain.Entities;
 public class LedgerEvent : BaseAuditableEntity
 {
     public Guid DebtId { get; private set; }
-    public Debt Debt { get; private set; } = null!;
     public string EventType { get; private set; } = null!;
     public string InternalReference { get; private set; } = null!;
 
+    public Debt Debt { get; private set; } = null!;
+
     // EVENT DETAILS
-
-    public Guid? AdjustmentId { get; private set; }
     public DebtAdjustment? Adjustment { get; private set; }
-
-    public Guid? PaymentId { get; private set; }
     public DebtPayment? Payment { get; private set; }
-
-    public Guid? PaymentStatusChangeId { get; private set; }
     public DebtPaymentStatusChange? PaymentStatusChange { get; private set; }
 
     // METHODS
@@ -33,7 +28,7 @@ public class LedgerEvent : BaseAuditableEntity
 
         return new()
         {
-            Id = Guid.NewGuid(),
+            //Id = Guid.NewGuid(),
             DebtId = debt.Id,
             Debt = debt,
             EventType = eventType,
@@ -48,13 +43,12 @@ public class LedgerEvent : BaseAuditableEntity
             Id = Guid.NewGuid(),
             DebtId = debt.Id,
             Debt = debt,
-            AdjustmentId = adjustment.Id,
             Adjustment = adjustment,
             EventType = LedgerEventTypes.Adjustment,
             InternalReference = GenReferenceNumber()
         };
 
-        adjustment.LedgerEvent = adjustmentEvent;
+        adjustment.SetLedgerEvent(adjustmentEvent);
 
         return adjustmentEvent;
     }
@@ -66,29 +60,31 @@ public class LedgerEvent : BaseAuditableEntity
             Id = Guid.NewGuid(),
             DebtId = debt.Id,
             Debt = debt,
-            PaymentId = payment.Id,
             Payment = payment,
             EventType = LedgerEventTypes.Payment,
             InternalReference = GenReferenceNumber()
         };
 
-        payment.LedgerEvent = paymentEvent;
+        payment.SetLedgerEvent(paymentEvent);
 
         return paymentEvent;
     }
 
     internal static LedgerEvent CreatePaymentStatusChange(Debt debt, DebtPaymentStatusChange statusChange)
     {
-        return new()
+        var statusChangeEvent = new LedgerEvent()
         {
             Id = Guid.NewGuid(),
             DebtId = debt.Id,
             Debt = debt,
-            PaymentStatusChangeId = statusChange.Id,
             PaymentStatusChange = statusChange,
             EventType = LedgerEventTypes.PaymentStatusChange,
             InternalReference = GenReferenceNumber()
         };
+
+        statusChange.SetLedgerEvent(statusChangeEvent);
+
+        return statusChangeEvent;
     }
 
     private static string GenReferenceNumber() => $"REF-{Guid.NewGuid().ToString("N")[..8].ToUpper()}";

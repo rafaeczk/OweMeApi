@@ -5,6 +5,7 @@ using Application.Common.Interfaces;
 using Microsoft.Extensions.Logging;
 using Application.Modules.Debts._Filters;
 using Domain.ValueObjects;
+using Domain.Exceptions;
 
 namespace Application.Modules.Debts.ChangeDebtAmount;
 
@@ -19,7 +20,8 @@ public class ChangeDebtAmountHandler(
     {
         var debt = await context.Debts
             .DebtCreditorOnly(user)
-            .FirstOrDefaultAsync(d => d.Id == request.DebtId, ct);
+            .Include(d => d.LedgerEvents)
+            .SingleOrDefaultAsync(d => d.Id == request.DebtId, ct);
 
         if (debt == null)
             return HandlerResult.Failure("Debt not found", ErrorCode.NotFound);
@@ -31,16 +33,31 @@ public class ChangeDebtAmountHandler(
 
         try
         {
-            debt.CreateAdjustment(new Money(request.Amount), request.Note);
+            var adjustment = debt.CreateAdjustment(new Money(request.Amount), request.Note);
+
+            context.DebtAdjustments.Add(adjustment);
+            context.LedgerEvents.Add(adjustment.LedgerEvent);
 
             await context.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);
 
             return HandlerResult.Success();
         }
+        catch(DebtIsSettledException exception)
+        {
+            logger.LogError(exception, "Change debt amount error for: UserId={UserId}, DebtId={DebtId}", user.Id, debt.Id);
+
+            return HandlerResult.Failure("Debt is settled", ErrorCode.BadRequest);
+        }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Change debt amount error for {UserId}", user.Id);
+            try
+            {
+                await transaction.RollbackAsync(ct);
+            }
+            catch { }
+
+            logger.LogError(exception, "Change debt amount error for: UserId={UserId}, DebtId={DebtId}", user.Id, debt.Id);
 
             return HandlerResult.Failure("Technical error", ErrorCode.InternalError);
         }

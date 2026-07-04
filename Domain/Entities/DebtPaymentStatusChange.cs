@@ -6,10 +6,12 @@ namespace Domain.Entities;
 
 public class DebtPaymentStatusChange : BaseEntity
 {
-    public LedgerEvent LedgerEvent { get; internal set; } = null!;
+    public Guid LedgerEventId { get; private set; }
     public Guid PaymentId { get; private set; }
     public string Status { get; private set; } = null!;
     public string? Note { get; private set; }
+
+    public LedgerEvent LedgerEvent { get; internal set; } = null!;
 
     public DebtPayment Payment { get; private set; } = null!;
 
@@ -28,5 +30,11 @@ public class DebtPaymentStatusChange : BaseEntity
             Status = status,
             Note = note
         };
+    }
+
+    internal void SetLedgerEvent(LedgerEvent ledgerEvent)
+    {
+        LedgerEvent = ledgerEvent;
+        LedgerEventId = ledgerEvent.Id;
     }
 }

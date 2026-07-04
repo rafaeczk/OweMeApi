@@ -10,8 +10,11 @@ public class SignInHandler(IIdentityService identityService) : IRequestHandler<S
 {
     public async Task<HandlerResult> Handle(SignInCommand request, CancellationToken ct)
     {
-        var success = await identityService.SignIn(request.Email, request.Password);
+        var result = await identityService.SignIn(request.Email, request.Password);
 
-        return success ? HandlerResult.Success() : HandlerResult.Failure("Sign in failure", ErrorCode.Unauthorized);
+        if (!result.IsSuccess)
+            return HandlerResult.Failure(result.Errors, ErrorCode.Unauthorized);
+
+        return HandlerResult.Success();
     }
 }

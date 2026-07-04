@@ -5,10 +5,11 @@ namespace Domain.Entities;
 
 public class DebtAdjustment : BaseEntity
 {
+    public Guid LedgerEventId { get; private set; }
     public Money Money { get; private set; } = null!;
     public string Note { get; private set; } = string.Empty;
 
-    public LedgerEvent LedgerEvent { get; internal set; } = null!;
+    public LedgerEvent LedgerEvent { get; private set; } = null!;
 
     private DebtAdjustment() { }
 
@@ -18,4 +19,10 @@ public class DebtAdjustment : BaseEntity
             Money = money,
             Note = note
         };
+
+    internal void SetLedgerEvent(LedgerEvent ledgerEvent)
+    {
+        LedgerEvent = ledgerEvent;
+        LedgerEventId = ledgerEvent.Id;
+    }
 }

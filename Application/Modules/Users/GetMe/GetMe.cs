@@ -13,13 +13,11 @@ public class GetMeHandler(
 {
     public async Task<HandlerResult<UserDTO>> Handle(GetMeQuery request, CancellationToken ct)
     {
-        var (userFound, user) = await identityService.GetUserById(userContext.Id);
+        var result = await identityService.GetUser(userContext.Id);
 
-        if (!userFound)
-            return HandlerResult.Failure("User not found", ErrorCode.NotFound);
+        if (!result.IsSuccess)
+            return HandlerResult.Failure(result.Errors, ErrorCode.Unauthorized);
 
-        var (_, role) = await identityService.GetUserRole(user.Id);
-
-        return new UserDTO(user.Id, user.Email!, user.FullName, new UserRoleDTO(role ?? "Not found"));
+        return result.Value!;
     }
 }

@@ -20,24 +20,19 @@ internal class LedgerEventConfiguration : IEntityTypeConfiguration<LedgerEvent>
 
         builder.ConfigureAuditableEntryFields();
 
-        // DETAILS
-
-        builder.HasOne(e => e.Adjustment)
-            .WithOne(a => a.LedgerEvent)
-            .HasForeignKey<LedgerEvent>(e => e.AdjustmentId)
-            .IsRequired(false)
-            .OnDelete(DeleteBehavior.Restrict);
-
         builder.HasOne(e => e.Payment)
-            .WithOne(p => p.LedgerEvent)
-            .HasForeignKey<LedgerEvent>(e => e.PaymentId)
-            .IsRequired(false)
-            .OnDelete(DeleteBehavior.Restrict);
+           .WithOne(p => p.LedgerEvent)
+           .HasForeignKey<DebtPayment>(p => p.LedgerEventId)
+           .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(e => e.PaymentStatusChange)
             .WithOne(psc => psc.LedgerEvent)
-            .HasForeignKey<LedgerEvent>(e => e.PaymentStatusChangeId)
-            .IsRequired(false)
+            .HasForeignKey<DebtPaymentStatusChange>(psc => psc.LedgerEventId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(e => e.Adjustment)
+            .WithOne(a => a.LedgerEvent)
+            .HasForeignKey<DebtAdjustment>(a => a.LedgerEventId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

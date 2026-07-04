@@ -17,7 +17,13 @@ public class GetDebtHandler(
     {
         var debt = await context.Debts
             .DebtOwnerOnly(user)
-            .FirstOrDefaultAsync(d => d.Id == request.DebtId, ct);
+            .Include(d => d.LedgerEvents)
+                .ThenInclude(e => e.Payment)
+            .Include(d => d.LedgerEvents)
+                .ThenInclude(e => e.Adjustment)
+            .Include(d => d.LedgerEvents)
+                .ThenInclude(e => e.PaymentStatusChange)
+            .SingleOrDefaultAsync(d => d.Id == request.DebtId, ct);
 
         if (debt == null)
             return HandlerResult.Failure("Debt not found", ErrorCode.NotFound);

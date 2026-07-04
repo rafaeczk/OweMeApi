@@ -17,7 +17,7 @@ public class CreateDebtHandler(
 {
     public async Task<HandlerResult<Guid>> Handle(CreateDebtCommand request, CancellationToken ct)
     {
-        if (await identityService.GetUserEmail(request.DebtorId) == null)
+        if (!await identityService.UserExists(request.DebtorId))
             return HandlerResult.Failure("Debtor not found", ErrorCode.NotFound);
 
         if (user.Id == request.DebtorId)
@@ -29,9 +29,11 @@ public class CreateDebtHandler(
         {
             var debt = Debt.Create(request.Title, request.Description, user.Id, request.DebtorId);
 
-            debt.CreateAdjustment(new Money(request.Amount), "Initial debt amount");
+            var adjustment = debt.CreateAdjustment(new Money(request.Amount), "Initial debt amount");
 
             context.Debts.Add(debt);
+            context.DebtAdjustments.Add(adjustment);
+            context.LedgerEvents.Add(adjustment.LedgerEvent);
 
             await context.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);
