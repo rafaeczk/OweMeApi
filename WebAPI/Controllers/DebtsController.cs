@@ -6,7 +6,7 @@ using Application.Modules.Debts.EditDebtInformation;
 using Application.Modules.Debts.GetDebt;
 using Application.Modules.Debts.GetDebtHistory;
 using Application.Modules.Debts.GetDebts;
-using Application.Modules.Debts.VerifyCashPayment;
+using Application.Modules.Debts.VerifyPayment;
 using Infrastructure.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -78,10 +78,10 @@ public class DebtsController(IMediator mediator) : ControllerBase
         return result.ToActionResult();
     }
 
-    [HttpPatch("verify-cash-payment")]
-    public async Task<ActionResult> VerifyCashPayment([FromBody] VerifyCashPaymentDTO dto)
+    [HttpPatch("verify-payment")]
+    public async Task<ActionResult> VerifyPayment([FromBody] VerifyPaymentDTO dto)
     {
-        var result = await _mediator.Send(new VerifyCashPaymentCommand(dto.PaymentId, dto.Status, dto.Note));
+        var result = await _mediator.Send(new VerifyPaymentCommand(dto.PaymentId, dto.Status, dto.Note));
 
         return result.ToActionResult();
     }

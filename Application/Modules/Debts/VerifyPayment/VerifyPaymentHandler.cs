@@ -6,16 +6,16 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace Application.Modules.Debts.VerifyCashPayment;
+namespace Application.Modules.Debts.VerifyPayment;
 
-public record VerifyCashPaymentCommand(Guid PaymentId, string Status, string? Note) : IRequest<HandlerResult>;
+public record VerifyPaymentCommand(Guid PaymentId, string Status, string? Note) : IRequest<HandlerResult>;
 
-public class VerifyCashPaymentHandler(
+public class VerifyPaymentHandler(
     IAppDbContext context,
     IUserContext user,
-    ILogger<VerifyCashPaymentHandler> logger) : IRequestHandler<VerifyCashPaymentCommand, HandlerResult>
+    ILogger<VerifyPaymentHandler> logger) : IRequestHandler<VerifyPaymentCommand, HandlerResult>
 {
-    public async Task<HandlerResult> Handle(VerifyCashPaymentCommand request, CancellationToken ct)
+    public async Task<HandlerResult> Handle(VerifyPaymentCommand request, CancellationToken ct)
     {
         var payment = await context.DebtPayments
             .DebtPaymentReceiverOnly(user)
@@ -33,7 +33,7 @@ public class VerifyCashPaymentHandler(
             .FirstOrDefaultAsync(ct);
 
         if (currentPaymentStatus != DebtPaymentStatus.Pending)
-            return HandlerResult.Failure("You have already verified this cash payment", ErrorCode.BadRequest);
+            return HandlerResult.Failure("You have already verified this payment", ErrorCode.BadRequest);
 
         using var transaction = await context.BeginTransactionAsync(ct);
 

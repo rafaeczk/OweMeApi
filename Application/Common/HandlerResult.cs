@@ -41,7 +41,7 @@ public class HandlerResult
                 ErrorCode.Unauthorized => StatusCodes.Status401Unauthorized,
                 _ => StatusCodes.Status400BadRequest
             },
-            Extensions = { { "errors", new Dictionary<string, object>() { { "general", Errors } } } }
+            Extensions = { { "errors", new Dictionary<string, object>() { { "_general_", Errors } } } }
         };
 
         return ErrorCode switch

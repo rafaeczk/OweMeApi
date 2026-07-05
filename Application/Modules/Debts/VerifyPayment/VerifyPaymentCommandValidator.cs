@@ -1,11 +1,11 @@
 ﻿using Domain.Enums;
 using FluentValidation;
 
-namespace Application.Modules.Debts.VerifyCashPayment;
+namespace Application.Modules.Debts.VerifyPayment;
 
-public class VerifyCashPaymentCommandValidator : AbstractValidator<VerifyCashPaymentCommand>
+public class VerifyPaymentCommandValidator : AbstractValidator<VerifyPaymentCommand>
 {
-    public VerifyCashPaymentCommandValidator()
+    public VerifyPaymentCommandValidator()
     {
         RuleFor(d => d.PaymentId)
             .NotEmpty().WithMessage("Payment id is required");
