@@ -15,6 +15,8 @@ public static class InitialiserExtensions
 
         var initialiser = scope.ServiceProvider.GetRequiredService<ApplicationDbContextInitialiser>();
 
+        await initialiser.Migrate();
+
         await initialiser.SeedRoles();
 
         if (dev)
@@ -30,6 +32,11 @@ internal class ApplicationDbContextInitialiser(AppDbContext context, UserManager
     private readonly AppDbContext _context = context;
     private readonly UserManager<User> _userManager = userManager;
     private readonly RoleManager<IdentityRole<Guid>> _roleManager = roleManager;
+
+    public async Task Migrate()
+    {
+        await _context.Database.MigrateAsync();
+    }
 
     public async Task SeedRoles()
     {

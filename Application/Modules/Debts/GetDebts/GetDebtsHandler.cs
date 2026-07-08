@@ -49,7 +49,7 @@ public class GetDebtsHandler(
             .Where(e => debtIds.Contains(e.DebtId))
             .Include(e => e.Adjustment)
             .Include(e => e.Payment)
-                .ThenInclude(p => p.StatusChanges)
+                .ThenInclude(p => p!.StatusChanges)
                     .ThenInclude(sc => sc.LedgerEvent)
             .OrderByDescending(e => e.CreatedAt)
             .ToListAsync(ct);

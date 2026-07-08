@@ -1,0 +1,30 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api
+    ports:
+      - "8080:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Host=postgres_db;Database=OweMeApiDb;Username=admin;Password=123
+    depends_on:
+      - postgres_db
+
+  postgres_db:
+    image: postgres:17
+    container_name: database
+    restart: always
+    environment:
+      POSTGRES_DB: OweMeApiDb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

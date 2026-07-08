@@ -23,7 +23,7 @@ public class ChangeDebtApprovementHandler(
             .DebtOwnerOnly(user)
             .Include(d => d.LedgerEvents)
                 .ThenInclude(e => e.Payment)
-                    .ThenInclude(p => p.StatusChanges)
+                    .ThenInclude(p => p!.StatusChanges)
             .SingleOrDefaultAsync(d => d.Id == request.DebtId, ct);
 
         if (debt == null)

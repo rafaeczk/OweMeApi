@@ -1,6 +1,8 @@
 using Application;
+using Application.Common.Interfaces;
 using Infrastructure;
 using Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using WebAPI;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,10 +28,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors(static builder =>
-    builder.AllowAnyMethod()
-        .AllowAnyHeader()
-        .AllowAnyOrigin());
+app.UseCors();
 
 app.UseAuthentication();
 app.UseAuthorization();

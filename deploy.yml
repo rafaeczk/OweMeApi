@@ -1,0 +1,22 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+      
+    - name: Run Database Migrations
+      run: dotnet ef database update --project Infrastructure --startup-project WebAPI
+        
+    - name: Build with dotnet
+      run: dotnet build --configuration Release

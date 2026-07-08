@@ -1,4 +1,13 @@
 <Solution>
+  <Folder Name="/.git/" />
+  <Folder Name="/.git/actions/">
+    <File Path="deploy.yml" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".dockerignore" />
+    <File Path="docker-compose.yml" />
+    <File Path="Dockerfile" />
+  </Folder>
   <Project Path="Application/Application.csproj" Id="b4326583-51c2-4c4b-9fca-4fcb2a626553" />
   <Project Path="Domain/Domain.csproj" Id="95adf465-8fa3-4297-8bad-3fc7efa6bb39" />
   <Project Path="Infrastructure/Infrastructure.csproj" Id="fca98f59-a812-4c87-8ea7-5c62c0e1a5b1" />
