@@ -6,7 +6,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "http://localhost:5269"
+      "applicationUrl": "http://localhost:8080"
     },
     "IIS Express": {
       "commandName": "IISExpress",
@@ -16,10 +16,10 @@
     },
     "WSL": {
       "commandName": "WSL2",
-      "launchUrl": "http://localhost:5269",
+      "launchUrl": "http://localhost:8080",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "ASPNETCORE_URLS": "http://localhost:5269"
+        "ASPNETCORE_URLS": "http://localhost:8080"
       },
       "distributionName": ""
     }

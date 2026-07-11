@@ -5,15 +5,20 @@ using Domain.Entities;
 using Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace Infrastructure.Identity;
 
 public class IdentityService(
     UserManager<User> userManager,
-    SignInManager<User> signInManager) : IIdentityService
+    IConfiguration configuration) : IIdentityService
 {
     private readonly UserManager<User> _userManager = userManager;
-    private readonly SignInManager<User> _signInManager = signInManager;
+    private readonly IConfiguration _configuration = configuration;
 
     public async Task<bool> UserExists(Guid userId)
     {
@@ -61,32 +66,52 @@ public class IdentityService(
             new UserRoleDTO(role));
     }
 
-    public async Task<Result> SignIn(string email, string password)
+    public async Task<Result<string>> SignIn(string email, string password)
     {
         var user = await _userManager.FindByNameAsync(email);
 
         if (user == null) 
-            return Result.Failure("User not found", FailureReason.NotFound);
+            return Result.Failure("Invalid credentials", FailureReason.Unauthorized);
 
-        var result = await _signInManager.PasswordSignInAsync(user, password, true, false);
-
-        if (!result.Succeeded)
+        var isPasswordValid = await _userManager.CheckPasswordAsync(user, password);
+        if (!isPasswordValid)
         {
-            List<string> errors = [];
-
-            if (result.IsLockedOut)
-                errors.Add("User is locked");
-
-            if (result.IsNotAllowed)
-                errors.Add("User is not allowed");
-
-            if (result.RequiresTwoFactor)
-                errors.Add("User requires two factor");
-
-            return Result.Failure(errors);
+            return Result.Failure("Invalid credentials", FailureReason.Unauthorized);
         }
 
-        return Result.Success();
+        var roles = await _userManager.GetRolesAsync(user);
+
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Name, user.FullName),
+            new(ClaimTypes.Email, user.Email!)
+        };
+
+        foreach (var role in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
+
+        var secretKey = _configuration["JwtSettings:Secret"]
+            ?? throw new Exception("JWT Secret missing in configuration!");
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            Expires = DateTime.UtcNow.AddHours(2),
+            Issuer = _configuration["JwtSettings:Issuer"],
+            Audience = _configuration["JwtSettings:Audience"],
+            SigningCredentials = creds
+        };
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        var tokenString = tokenHandler.WriteToken(token);
+
+        return tokenString;
     }
 
     public async Task<Result<User>> SignUp(string email, string password, string fullName)
@@ -109,11 +134,6 @@ public class IdentityService(
             return Result.Failure(roleResult.Errors.Select(e => e.Description));
 
         return user;
-    }
-
-    public async Task LogOut()
-    {
-        await _signInManager.SignOutAsync();
     }
 
     public async Task<Result> ResetPassword(Guid userId, string newPassword)

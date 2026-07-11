@@ -12,11 +12,9 @@ public interface IIdentityService
 
     Task<List<UserDTO>> GetUsersAsync();
 
-    Task<Result> SignIn(string email, string password);
+    Task<Result<string>> SignIn(string email, string password);
 
     Task<Result<User>> SignUp(string email, string password, string fullName);
-
-    Task LogOut();
 
     Task<Result> ResetPassword(Guid userId, string newPassword);
 }

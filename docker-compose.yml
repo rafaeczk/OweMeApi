@@ -10,6 +10,9 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
       - ConnectionStrings__DefaultConnection=Host=postgres_db;Database=OweMeApiDb;Username=admin;Password=123
+      - JwtSettings__Secret=thergknerthpmnergmergiouwefgnpiowedfgvsojklnwefgvonik
+      - JwtSettings__Issuer=http://localhost:8080
+      - JwtSettings__Audience=http://localhost:5173
     depends_on:
       - postgres_db
 

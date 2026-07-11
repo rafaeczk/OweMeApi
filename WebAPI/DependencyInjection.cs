@@ -18,7 +18,8 @@ public static class DependencyInjection
                     origin.StartsWith("http://localhost:") ||
                     origin == "https://owe-me.vercel.app")
                       .AllowAnyHeader()
-                      .AllowAnyMethod();
+                      .AllowAnyMethod()
+                      .AllowCredentials();
             });
         });
     }
