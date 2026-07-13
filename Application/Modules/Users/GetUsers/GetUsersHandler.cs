@@ -2,15 +2,16 @@
 using MediatR;
 using Application.Common.Interfaces;
 using Application.Common.DTOs;
+using Application.Common.Pagination;
 
 namespace Application.Modules.Users.GetUsers;
 
-public record GetUsersQuery : IRequest<HandlerResult<List<UserDTO>>>;
+public record GetUsersQuery(PaginationParams Pagination) : PaginationParams(Pagination), IRequest<HandlerResult<PagedResult<UserDTO>>>;
 
-public class GetUsersHandler(IIdentityService identityService) : IRequestHandler<GetUsersQuery, HandlerResult<List<UserDTO>>>
+public class GetUsersHandler(IIdentityService identityService) : IRequestHandler<GetUsersQuery, HandlerResult<PagedResult<UserDTO>>>
 {
-    public async Task<HandlerResult<List<UserDTO>>> Handle(GetUsersQuery request, CancellationToken ct)
+    public async Task<HandlerResult<PagedResult<UserDTO>>> Handle(GetUsersQuery request, CancellationToken ct)
     {
-        return await identityService.GetUsersAsync();
+        return await identityService.GetUsersAsync(request);
     }
 }

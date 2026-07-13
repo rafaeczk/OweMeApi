@@ -1,9 +1,10 @@
 ﻿using Application.Common;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Application.Common.Interfaces;
+using Application.Common.Pagination;
 using Application.Modules.Debts._Filters;
 using Domain.Enums;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Modules.Debts.GetDebts;
 
@@ -17,13 +18,13 @@ public enum QEDebtState
     Settled, Unsettled, Any
 }
 
-public record GetDebtsQuery(QEUserRoleInDebt Role, QEDebtState State) : IRequest<HandlerResult<List<DebtListItemDTO>>>;
+public record GetDebtsQuery(QEUserRoleInDebt Role, QEDebtState State, PaginationParams Pagination) : PaginationParams(Pagination), IRequest<HandlerResult<PagedResult<DebtListItemDTO>>>;
 
 public class GetDebtsHandler(
     IAppDbContext context,
-    IUserContext user) : IRequestHandler<GetDebtsQuery, HandlerResult<List<DebtListItemDTO>>>
+    IUserContext user) : IRequestHandler<GetDebtsQuery, HandlerResult<PagedResult<DebtListItemDTO>>>
 {
-    public async Task<HandlerResult<List<DebtListItemDTO>>> Handle(GetDebtsQuery request, CancellationToken ct)
+    public async Task<HandlerResult<PagedResult<DebtListItemDTO>>> Handle(GetDebtsQuery request, CancellationToken ct)
     {
         var debtsQuery = context.Debts.AsQueryable();
 
@@ -41,7 +42,13 @@ public class GetDebtsHandler(
             _ => debtsQuery,
         };
 
-        var debts = await debtsQuery.AsNoTracking().ToListAsync(ct);
+        var totalDebts = await debtsQuery.CountAsync(ct);
+
+        var debts = await debtsQuery
+            .Paginate(request)
+            .AsNoTracking()
+            .ToListAsync(ct);
+
         var debtIds = debts.Select(d => d.Id).ToList();
 
         var allEvents = await context.LedgerEvents
@@ -56,7 +63,7 @@ public class GetDebtsHandler(
 
         var eventLookup = allEvents.ToLookup(e => e.DebtId);
 
-        return debts.Select(d =>
+        var debtDTOs = debts.Select(d =>
         {
             var events = eventLookup[d.Id].ToList();
 
@@ -97,38 +104,6 @@ public class GetDebtsHandler(
             );
         }).ToList();
 
-        //var result = await debtsQuery.Select(d => new DebtListItemDTO(
-        //    d.Id,
-        //    d.Title,
-        //    d.Description,
-        //    d.CreditorId,
-        //    d.DebtorId,
-        //    d.LedgerEvents.Where(e => e.EventType == LedgerEventType.Adjustment)
-        //        .OrderByDescending(e => e.Timestamp)
-        //        .Select(e => e.Adjustment!.Amount)
-        //        .FirstOrDefault(),
-        //    d.LedgerEvents.Where(e => e.EventType == LedgerEventType.Payment)
-        //        .OrderByDescending(e => e.Timestamp)
-        //        .Select(e => e.Payment)
-        //        .Where(p => p != null)
-        //        .Where(p => p!.StatusChanges
-        //            .OrderByDescending(sc => sc.LedgerEvent.Timestamp)
-        //            .Select(sc => (PaymentStatus?)sc.Status)
-        //            .FirstOrDefault() == PaymentStatus.Success)
-        //        .Select(p =>
-        //            (p!.PayerId == d.CreditorId && p!.ReceiverId == d.DebtorId)
-        //                ? -p!.Amount
-        //                : (p!.PayerId == d.DebtorId && p!.ReceiverId == d.CreditorId)
-        //                    ? p!.Amount
-        //                    : 0m)
-        //        .Sum(),
-        //    d.LedgerEvents.Where(e => e.EventType == LedgerEventType.CreditorDebtApprovement || e.EventType == LedgerEventType.CreditorDebtDisapprovement)
-        //        .OrderByDescending(e => e.Timestamp).Select(e => e.EventType == LedgerEventType.CreditorDebtApprovement).FirstOrDefault(),
-        //    d.LedgerEvents.Where(e => e.EventType == LedgerEventType.DebtorDebtApprovement || e.EventType == LedgerEventType.DebtorDebtDisapprovement)
-        //        .OrderByDescending(e => e.Timestamp).Select(e => e.EventType == LedgerEventType.DebtorDebtApprovement).FirstOrDefault(),
-        //    d.LedgerEvents.Any(e => e.EventType == LedgerEventType.DebtSettlement)
-        //)).ToListAsync(ct);
-
-        //return result;
+        return new PagedResult<DebtListItemDTO>(debtDTOs, totalDebts, request);
     }
 }

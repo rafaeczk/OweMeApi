@@ -1,34 +1,41 @@
-﻿using Application.Modules.Friends._Shared;
+﻿using Application.Common.Pagination;
+using Application.Modules.Friends._Shared;
 using Application.Modules.Friends.AcceptFriendRequest;
 using Application.Modules.Friends.AddFriendByCode;
 using Application.Modules.Friends.DeclineFriendRequest;
 using Application.Modules.Friends.GetFriendRequestsList;
 using Application.Modules.Friends.GetFriendsList;
 using Application.Modules.Friends.RequestFriendByUserId;
+using Infrastructure.Identity;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPI.Controllers;
 
 [Route("api/friends")]
 [ApiController]
-//[Authorize(Policy = AuthPolicies.AdminOrUser)]
+[Authorize(Policy = AuthPolicies.AdminOrUser)]
 public class FriendsController(IMediator mediator) : ControllerBase
 {
     private readonly IMediator _mediator = mediator;
 
     [HttpGet("list")]
-    public async Task<ActionResult<List<FriendListItemDTO>>> GetFriendsList()
+    public async Task<ActionResult<PagedResult<FriendListItemDTO>>> GetFriendsList(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20)
     {
-        var result = await _mediator.Send(new GetFriendsListQuery());
+        var result = await _mediator.Send(new GetFriendsListQuery(new(pageNumber, pageSize)));
 
         return result.ToActionResult();
     }
 
     [HttpGet("requests")]
-    public async Task<ActionResult<List<FriendRequestDTO>>> GetFriendRequestsList()
+    public async Task<ActionResult<PagedResult<FriendRequestDTO>>> GetFriendRequestsList(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20)
     {
-        var result = await _mediator.Send(new GetFriendRequestsListQuery());
+        var result = await _mediator.Send(new GetFriendRequestsListQuery(new(pageNumber, pageSize)));
 
         return result.ToActionResult();
     }

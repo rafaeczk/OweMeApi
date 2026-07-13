@@ -1,4 +1,5 @@
 ﻿using Application.Common.DTOs;
+using Application.Common.Pagination;
 using Application.Modules.Users.ChangeUserPassword;
 using Application.Modules.Users.GetMe;
 using Application.Modules.Users.GetUsers;
@@ -26,9 +27,11 @@ public class UsersController(IMediator mediator) : ControllerBase
 
     [HttpGet]
     [Authorize(Policy = AuthPolicies.Admin)]
-    public async Task<ActionResult<List<UserDTO>>> GetUsers()
+    public async Task<ActionResult<PagedResult<UserDTO>>> GetUsers(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20)
     {
-        var result = await _mediator.Send(new GetUsersQuery());
+        var result = await _mediator.Send(new GetUsersQuery(new(pageNumber, pageSize)));
 
         return result.ToActionResult();
     }
