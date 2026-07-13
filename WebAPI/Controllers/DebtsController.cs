@@ -1,4 +1,5 @@
-﻿using Application.Common.Pagination;
+﻿using Application.Common;
+using Application.Common.Pagination;
 using Application.Modules.Debts.ChangeDebtAmount;
 using Application.Modules.Debts.ChangeDebtApprovement;
 using Application.Modules.Debts.CreateDebt;
