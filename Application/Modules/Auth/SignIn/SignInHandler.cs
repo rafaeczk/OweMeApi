@@ -1,19 +1,19 @@
-﻿using Application.Common;
-using Application.Common.Interfaces;
+﻿using Application.Common.Interfaces;
+using Domain.Common;
 using MediatR;
 
 namespace Application.Modules.Auth.SignIn;
 
-public record SignInCommand(string Email, string Password) : IRequest<HandlerResult<string>>;
+public record SignInCommand(string Email, string Password) : IRequest<Result<string>>;
 
-public class SignInHandler(IIdentityService identityService) : IRequestHandler<SignInCommand, HandlerResult<string>>
+public class SignInHandler(IIdentityService identityService) : IRequestHandler<SignInCommand, Result<string>>
 {
-    public async Task<HandlerResult<string>> Handle(SignInCommand request, CancellationToken ct)
+    public async Task<Result<string>> Handle(SignInCommand request, CancellationToken ct)
     {
         var result = await identityService.SignIn(request.Email, request.Password);
 
         if (!result.IsSuccess)
-            return HandlerResult.Failure(result.Errors, ErrorCode.Unauthorized);
+            return Result.Failure(result.Errors, FailureReason.Unauthorized);
 
         return result.Value!;
     }

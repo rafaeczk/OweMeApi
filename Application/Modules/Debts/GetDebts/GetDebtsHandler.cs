@@ -1,7 +1,7 @@
-﻿using Application.Common;
-using Application.Common.Interfaces;
+﻿using Application.Common.Interfaces;
 using Application.Common.Pagination;
 using Application.Modules.Debts._Filters;
+using Domain.Common;
 using Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -18,13 +18,13 @@ public enum QEDebtState
     Settled, Unsettled, Any
 }
 
-public record GetDebtsQuery(QEUserRoleInDebt Role, QEDebtState State, PaginationParams Pagination) : PaginationParams(Pagination), IRequest<HandlerResult<PagedResult<DebtListItemDTO>>>;
+public record GetDebtsQuery(QEUserRoleInDebt Role, QEDebtState State, PaginationParams Pagination) : PaginationParams(Pagination), IRequest<Result<PagedResult<DebtListItemDTO>>>;
 
 public class GetDebtsHandler(
     IAppDbContext context,
-    IUserContext user) : IRequestHandler<GetDebtsQuery, HandlerResult<PagedResult<DebtListItemDTO>>>
+    IUserContext user) : IRequestHandler<GetDebtsQuery, Result<PagedResult<DebtListItemDTO>>>
 {
-    public async Task<HandlerResult<PagedResult<DebtListItemDTO>>> Handle(GetDebtsQuery request, CancellationToken ct)
+    public async Task<Result<PagedResult<DebtListItemDTO>>> Handle(GetDebtsQuery request, CancellationToken ct)
     {
         var debtsQuery = context.Debts.AsQueryable();
 
@@ -73,6 +73,7 @@ public class GetDebtsHandler(
                 d.Description,
                 d.CreditorId,
                 d.DebtorId,
+                d.CreatedAt,
                 events.Where(e => e.EventType == LedgerEventTypes.Adjustment)
                     .OrderByDescending(e => e.CreatedAt)
                     .Select(e => e.Adjustment!.Money.Amount)

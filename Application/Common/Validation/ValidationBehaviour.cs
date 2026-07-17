@@ -1,7 +1,6 @@
-﻿using FluentValidation;
+﻿using Application.Common.Exceptions;
+using FluentValidation;
 using MediatR;
-using Microsoft.AspNetCore.Http;
-using Application.Common.Exceptions;
 
 namespace Application.Common.Validation;
 
@@ -19,19 +18,7 @@ public class ValidationBehaviour<TRequest, TResponse>(IEnumerable<IValidator<TRe
             .ToList();
 
         if (failures.Count != 0)
-        {
-            var errors = failures
-                .GroupBy(f => f.PropertyName)
-                .ToDictionary(
-                    g => g.Key,
-                    g => (object?)g.Select(f => f.ErrorMessage).ToArray()
-                );
-
-            throw new ApiException("Validation failed", StatusCodes.Status400BadRequest)
-            {
-                Errors = errors
-            };
-        }
+            throw new ValidationException(failures.Select(f => new ErrorItem(f.ErrorMessage, f.PropertyName)));
 
         return await next(ct);
     }

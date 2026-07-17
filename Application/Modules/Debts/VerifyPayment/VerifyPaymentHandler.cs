@@ -1,4 +1,4 @@
-﻿using Application.Common;
+﻿using Domain.Common;
 using Application.Common.Interfaces;
 using Application.Modules.Debts._Filters;
 using Domain.Enums;
@@ -8,14 +8,14 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Modules.Debts.VerifyPayment;
 
-public record VerifyPaymentCommand(Guid PaymentId, string Status, string? Note) : IRequest<HandlerResult>;
+public record VerifyPaymentCommand(Guid PaymentId, string Status, string? Note) : IRequest<Result>;
 
 public class VerifyPaymentHandler(
     IAppDbContext context,
     IUserContext user,
-    ILogger<VerifyPaymentHandler> logger) : IRequestHandler<VerifyPaymentCommand, HandlerResult>
+    ILogger<VerifyPaymentHandler> logger) : IRequestHandler<VerifyPaymentCommand, Result>
 {
-    public async Task<HandlerResult> Handle(VerifyPaymentCommand request, CancellationToken ct)
+    public async Task<Result> Handle(VerifyPaymentCommand request, CancellationToken ct)
     {
         var payment = await context.DebtPayments
             .DebtPaymentReceiverOnly(user)
@@ -23,8 +23,8 @@ public class VerifyPaymentHandler(
                 .ThenInclude(e => e.Debt)
             .SingleOrDefaultAsync(p => p.Id == request.PaymentId, ct);
 
-        if (payment == null)
-            return HandlerResult.Failure("Payment not found", ErrorCode.NotFound);
+        if (payment is null)
+            return Result.Failure("Payment not found", FailureReason.NotFound);
 
         var currentPaymentStatus = await context.DebtPaymentStatusChanges
             .Where(sc => sc.PaymentId == payment.Id)
@@ -33,7 +33,7 @@ public class VerifyPaymentHandler(
             .FirstOrDefaultAsync(ct);
 
         if (currentPaymentStatus != DebtPaymentStatus.Pending)
-            return HandlerResult.Failure("You have already verified this payment", ErrorCode.BadRequest);
+            return Result.Failure("You have already verified this payment", FailureReason.BadRequest);
 
         using var transaction = await context.BeginTransactionAsync(ct);
 
@@ -47,7 +47,7 @@ public class VerifyPaymentHandler(
             await context.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);
 
-            return HandlerResult.Success();
+            return Result.Success();
         }
         catch (Exception exception)
         {
@@ -59,7 +59,7 @@ public class VerifyPaymentHandler(
 
             logger.LogError(exception, "Payment verification error for: UserId={UserId}, PaymentId={PaymentId}", user.Id, payment.Id);
 
-            return HandlerResult.Failure("Technical error", ErrorCode.InternalError);
+            return Result.Failure("Technical error", FailureReason.InternalError);
         }
     }
 }

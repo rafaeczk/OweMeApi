@@ -1,4 +1,4 @@
-﻿using Application.Common;
+﻿using Domain.Common;
 using Application.Common.Interfaces;
 using Application.Modules.Debts._Filters;
 using MediatR;
@@ -7,13 +7,13 @@ using Domain.Entities;
 
 namespace Application.Modules.Debts.GetDebt;
 
-public record GetDebtQuery(Guid DebtId) : IRequest<HandlerResult<DebtDTO>>;
+public record GetDebtQuery(Guid DebtId) : IRequest<Result<DebtDTO>>;
 
 public class GetDebtHandler(
     IAppDbContext context,
-    IUserContext user) : IRequestHandler<GetDebtQuery, HandlerResult<DebtDTO>>
+    IUserContext user) : IRequestHandler<GetDebtQuery, Result<DebtDTO>>
 {
-    public async Task<HandlerResult<DebtDTO>> Handle(GetDebtQuery request, CancellationToken ct)
+    public async Task<Result<DebtDTO>> Handle(GetDebtQuery request, CancellationToken ct)
     {
         var debt = await context.Debts
             .DebtOwnerOnly(user)
@@ -25,8 +25,8 @@ public class GetDebtHandler(
                 .ThenInclude(e => e.PaymentStatusChange)
             .SingleOrDefaultAsync(d => d.Id == request.DebtId, ct);
 
-        if (debt == null)
-            return HandlerResult.Failure("Debt not found", ErrorCode.NotFound);
+        if (debt is null)
+            return Result.Failure("Debt not found", FailureReason.NotFound);
 
         var totalAmount = debt.GetTotalAmount();
 
@@ -46,6 +46,7 @@ public class GetDebtHandler(
             debt.Description,
             debt.CreditorId,
             debt.DebtorId,
+            debt.CreatedAt,
             totalAmount,
             totalPayments,
             summary,

@@ -1,9 +1,12 @@
 ﻿namespace Domain.Common;
 
+public enum FailureReason { None, NotFound, BadRequest, Conflict, Unauthorized, InternalError }
+
 public class Result
 {
     public bool IsSuccess { get; }
     public IEnumerable<string> Errors { get; }
+    public FailureReason FailureReason { get; }
 
     protected Result(bool isSuccess, IEnumerable<string> errors)
     {
@@ -17,8 +20,8 @@ public class Result
     }
 
     public static Result Success() => new(true, []);
-    public static FailureResult Failure(string error, FailureReason reason = FailureReason.Failure) => new([error], reason);
-    public static FailureResult Failure(IEnumerable<string> errors, FailureReason reason = FailureReason.Failure) => new(errors, reason);
+    public static FailureResult Failure(string error, FailureReason reason) => new([error], reason);
+    public static FailureResult Failure(IEnumerable<string> errors, FailureReason reason) => new(errors, reason);
 }
 
 public class Result<T> : Result
@@ -41,10 +44,8 @@ public class Result<T> : Result
     public static Result<T> Success(T value) => new(value);
 }
 
-public enum FailureReason { None, NotFound, Unauthorized, Validation, Conflict, Failure }
-
 public class FailureResult(IEnumerable<string> errors, FailureReason reason)
 {
     public IEnumerable<string> Errors { get; } = errors;
-    public FailureReason Reason { get; } = reason;
+    public FailureReason FailureReason { get; } = reason;
 }

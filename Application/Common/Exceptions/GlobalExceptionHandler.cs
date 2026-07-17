@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
+using Application.Common.Validation;
 
 namespace Application.Common.Exceptions;
 
@@ -9,18 +10,22 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken ct)
     {
-        var problemDetails = exception switch
+        ProblemDetails problemDetails = exception switch
         {
-            ApiException e => new ProblemDetails
+            System.Text.Json.JsonException e => new ErrorResponse
             {
-                Status = e.StatusCode,
-                Title = e.Message,
-                Extensions = { { "errors", e.Errors } }
+                Status = StatusCodes.Status400BadRequest,
+                Errors = [new ErrorItem("Invalid data format", e.Path)]
             },
-            _ => new ProblemDetails
+            ValidationException e => new ErrorResponse
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Errors = e.Errors
+            },
+            _ => new ErrorResponse
             {
                 Status = StatusCodes.Status500InternalServerError,
-                Title = "Unexpected error occured"
+                Errors = [new ErrorItem("Unexpected error occured", null)]
             }
         };
 

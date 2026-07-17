@@ -1,3 +1,3 @@
-﻿namespace Application.Modules.FriendCodes.GenerateMyCode;
+﻿namespace Application.Modules.FriendCodes.GetMyCode;
 
 public record FriendCodeDTO(string Code, DateTime ExpiresAt);

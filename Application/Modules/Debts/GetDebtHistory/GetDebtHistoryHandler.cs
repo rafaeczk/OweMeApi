@@ -1,4 +1,4 @@
-﻿using Application.Common;
+﻿using Domain.Common;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Application.Common.Interfaces;
@@ -7,11 +7,11 @@ using Domain.Enums;
 
 namespace Application.Modules.Debts.GetDebtHistory;
 
-public record GetDebtHistoryQuery(Guid DebtId) : IRequest<HandlerResult<List<DebtHistoryListItemDTO>>>;
+public record GetDebtHistoryQuery(Guid DebtId) : IRequest<Result<List<DebtHistoryListItemDTO>>>;
 
 public class GetDebtHistoryHandler(
     IAppDbContext context,
-    IUserContext user) : IRequestHandler<GetDebtHistoryQuery, HandlerResult<List<DebtHistoryListItemDTO>>>
+    IUserContext user) : IRequestHandler<GetDebtHistoryQuery, Result<List<DebtHistoryListItemDTO>>>
 {
     private readonly List<string> allowedEventTypes =
     [
@@ -22,14 +22,14 @@ public class GetDebtHistoryHandler(
         LedgerEventTypes.DebtorDebtApprovement, LedgerEventTypes.DebtorDebtDisapprovement
     ];
 
-    public async Task<HandlerResult<List<DebtHistoryListItemDTO>>> Handle(GetDebtHistoryQuery request, CancellationToken ct)
+    public async Task<Result<List<DebtHistoryListItemDTO>>> Handle(GetDebtHistoryQuery request, CancellationToken ct)
     {
         var debtQuery = context.Debts
             .DebtOwnerOnly(user)
             .Where(d => d.Id == request.DebtId);
 
         if (!await debtQuery.AnyAsync(ct))
-            return HandlerResult.Failure("Debt not found", ErrorCode.NotFound);
+            return Result.Failure("Debt not found", FailureReason.NotFound);
 
         var debtEvents = await debtQuery
             .SelectMany(d => d.LedgerEvents)

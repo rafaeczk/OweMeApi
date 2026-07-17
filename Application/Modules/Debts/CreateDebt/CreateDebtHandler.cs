@@ -1,27 +1,27 @@
-﻿using Application.Common;
-using MediatR;
-using Application.Common.Interfaces;
-using Microsoft.Extensions.Logging;
+﻿using Application.Common.Interfaces;
+using Domain.Common;
 using Domain.Entities;
 using Domain.ValueObjects;
+using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Modules.Debts.CreateDebt;
 
-public record CreateDebtCommand(Guid DebtorId, string Title, string? Description, decimal Amount) : IRequest<HandlerResult<Guid>>;
+public record CreateDebtCommand(Guid DebtorId, string Title, string? Description, decimal Amount) : IRequest<Result<Guid>>;
 
 public class CreateDebtHandler(
     IAppDbContext context,
     IIdentityService identityService,
     ILogger<CreateDebtHandler> logger,
-    IUserContext user) : IRequestHandler<CreateDebtCommand, HandlerResult<Guid>>
+    IUserContext user) : IRequestHandler<CreateDebtCommand, Result<Guid>>
 {
-    public async Task<HandlerResult<Guid>> Handle(CreateDebtCommand request, CancellationToken ct)
+    public async Task<Result<Guid>> Handle(CreateDebtCommand request, CancellationToken ct)
     {
         if (!await identityService.UserExists(request.DebtorId))
-            return HandlerResult.Failure("Debtor not found", ErrorCode.NotFound);
+            return Result.Failure("Debtor not found", FailureReason.NotFound);
 
         if (user.Id == request.DebtorId)
-            return HandlerResult.Failure("You cannot debt yourself", ErrorCode.BadRequest);
+            return Result.Failure("You cannot debt yourself", FailureReason.BadRequest);
 
         using var transaction = await context.BeginTransactionAsync(ct);
 
@@ -44,7 +44,7 @@ public class CreateDebtHandler(
         {
             logger.LogError(exception, "Create debt error for {DebtorId}", request.DebtorId);
 
-            return HandlerResult.Failure("Technical error", ErrorCode.InternalError);
+            return Result.Failure("Technical error", FailureReason.InternalError);
         }
     }
 }

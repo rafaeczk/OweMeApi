@@ -57,14 +57,14 @@ public class IdentityService(
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
 
-        if (user == null)
+        if (user is null)
             return Result.Failure("User not found", FailureReason.NotFound);
 
         var roles = await _userManager.GetRolesAsync(user);
 
         var role = roles.FirstOrDefault();
 
-        if (role == null)
+        if (role is null)
             return Result.Failure("Role not found", FailureReason.NotFound);
 
         return new UserDTO(
@@ -78,7 +78,7 @@ public class IdentityService(
     {
         var user = await _userManager.FindByNameAsync(email);
 
-        if (user == null) 
+        if (user is null) 
             return Result.Failure("Invalid credentials", FailureReason.Unauthorized);
 
         var isPasswordValid = await _userManager.CheckPasswordAsync(user, password);
@@ -134,12 +134,12 @@ public class IdentityService(
         var result = await _userManager.CreateAsync(user, password);
 
         if (!result.Succeeded)
-            return Result.Failure(result.Errors.Select(e => e.Description));
+            return Result.Failure(result.Errors.Select(e => e.Description), FailureReason.BadRequest);
 
         var roleResult = await _userManager.AddToRoleAsync(user, UserRole.User);
 
         if (!roleResult.Succeeded)
-            return Result.Failure(roleResult.Errors.Select(e => e.Description));
+            return Result.Failure(roleResult.Errors.Select(e => e.Description), FailureReason.BadRequest);
 
         return user;
     }
@@ -148,7 +148,7 @@ public class IdentityService(
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
 
-        if (user == null) 
+        if (user is null) 
             return Result.Failure("User not found", FailureReason.NotFound);
 
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
@@ -156,7 +156,7 @@ public class IdentityService(
         var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
 
         if(!result.Succeeded)
-            return Result.Failure(result.Errors.Select(e => e.Description));
+            return Result.Failure(result.Errors.Select(e => e.Description), FailureReason.BadRequest);
 
         return Result.Success();
     }

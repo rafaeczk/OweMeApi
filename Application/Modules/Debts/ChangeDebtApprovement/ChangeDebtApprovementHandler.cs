@@ -1,7 +1,6 @@
-﻿using Application.Common;
-using Application.Common.Interfaces;
+﻿using Application.Common.Interfaces;
 using Application.Modules.Debts._Filters;
-using Domain.Entities;
+using Domain.Common;
 using Domain.Enums;
 using Domain.Exceptions;
 using MediatR;
@@ -10,14 +9,14 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Modules.Debts.ChangeDebtApprovement;
 
-public record ChangeDebtApprovementCommand(Guid DebtId, bool Approve) : IRequest<HandlerResult>;
+public record ChangeDebtApprovementCommand(Guid DebtId, bool Approve) : IRequest<Result>;
 
 public class ChangeDebtApprovementHandler(
     IAppDbContext context,
     IUserContext user,
-    ILogger<ChangeDebtApprovementHandler> logger) : IRequestHandler<ChangeDebtApprovementCommand, HandlerResult>
+    ILogger<ChangeDebtApprovementHandler> logger) : IRequestHandler<ChangeDebtApprovementCommand, Result>
 {
-    public async Task<HandlerResult> Handle(ChangeDebtApprovementCommand request, CancellationToken ct)
+    public async Task<Result> Handle(ChangeDebtApprovementCommand request, CancellationToken ct)
     {
         var debt = await context.Debts
             .DebtOwnerOnly(user)
@@ -26,14 +25,14 @@ public class ChangeDebtApprovementHandler(
                     .ThenInclude(p => p!.StatusChanges)
             .SingleOrDefaultAsync(d => d.Id == request.DebtId, ct);
 
-        if (debt == null)
-            return HandlerResult.Failure("Debt not found", ErrorCode.NotFound);
+        if (debt is null)
+            return Result.Failure("Debt not found", FailureReason.NotFound);
 
         if (debt.GetIsSettled())
-            return HandlerResult.Failure("Debt is settled", ErrorCode.BadRequest);
+            return Result.Failure("Debt is settled", FailureReason.BadRequest);
 
         if (debt.GetHasPendingPayments())
-            return HandlerResult.Failure("Debt has pending payments", ErrorCode.BadRequest);
+            return Result.Failure("Debt has pending payments", FailureReason.BadRequest);
 
         using var transaction = await context.BeginTransactionAsync(ct);
 
@@ -57,7 +56,7 @@ public class ChangeDebtApprovementHandler(
                     shouldSettle = true;
 
                 if (creditorApproves && eventType == LedgerEventTypes.CreditorDebtApprovement)
-                    return HandlerResult.Success();
+                    return Result.Success();
             }
 
             // USER IS DEBTOR
@@ -72,11 +71,11 @@ public class ChangeDebtApprovementHandler(
                     shouldSettle = true;
 
                 if (debtorApproves && eventType == LedgerEventTypes.DebtorDebtApprovement)
-                    return HandlerResult.Success();
+                    return Result.Success();
             }
 
             else
-                return HandlerResult.Failure("Debt not found", ErrorCode.NotFound);
+                return Result.Failure("Debt not found", FailureReason.NotFound);
 
             if (shouldSettle)
             {
@@ -87,13 +86,13 @@ public class ChangeDebtApprovementHandler(
             await context.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);
 
-            return HandlerResult.Success();
+            return Result.Success();
         }
         catch (DebtIsSettledException exception)
         {
-            logger.LogError(exception, "Change debt amount error for: UserId={UserId}, DebtId={DebtId}", user.Id, debt.Id);
+            logger.LogError(exception, "Change debt approvement error for: UserId={UserId}, DebtId={DebtId}", user.Id, debt.Id);
 
-            return HandlerResult.Failure("Debt is settled", ErrorCode.BadRequest);
+            return Result.Failure("Debt is settled", FailureReason.BadRequest);
         }
         catch (Exception exception)
         {
@@ -105,7 +104,7 @@ public class ChangeDebtApprovementHandler(
 
             logger.LogError(exception, "Change debt approvement error for {UserId}", user.Id);
 
-            return HandlerResult.Failure("Technical error", ErrorCode.InternalError);
+            return Result.Failure("Technical error", FailureReason.InternalError);
         }
     }
 }

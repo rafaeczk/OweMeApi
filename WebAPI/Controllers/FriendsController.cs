@@ -1,4 +1,5 @@
-﻿using Application.Common.Pagination;
+﻿using Application.Common.Extensions;
+using Application.Common.Pagination;
 using Application.Modules.Friends._Shared;
 using Application.Modules.Friends.AcceptFriendRequest;
 using Application.Modules.Friends.AddFriendByCode;

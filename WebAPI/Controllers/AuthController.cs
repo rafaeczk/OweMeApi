@@ -1,4 +1,5 @@
-﻿using Application.Modules.Auth.SignIn;
+﻿using Application.Common.Extensions;
+using Application.Modules.Auth.SignIn;
 using Application.Modules.Auth.SignUp;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

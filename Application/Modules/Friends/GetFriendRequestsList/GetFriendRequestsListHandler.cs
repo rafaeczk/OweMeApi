@@ -1,4 +1,4 @@
-﻿using Application.Common;
+﻿using Domain.Common;
 using Application.Common.Interfaces;
 using Application.Common.Pagination;
 using MediatR;
@@ -6,14 +6,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Modules.Friends.GetFriendRequestsList;
 
-public record GetFriendRequestsListQuery(PaginationParams Pagination) : PaginationParams(Pagination), IRequest<HandlerResult<PagedResult<FriendRequestDTO>>>;
+public record GetFriendRequestsListQuery(PaginationParams Pagination) : PaginationParams(Pagination), IRequest<Result<PagedResult<FriendRequestDTO>>>;
 
 public class GetFriendRequestsListHandler(
     IAppDbContext context,
     IUserContext user)
-    : IRequestHandler<GetFriendRequestsListQuery, HandlerResult<PagedResult<FriendRequestDTO>>>
+    : IRequestHandler<GetFriendRequestsListQuery, Result<PagedResult<FriendRequestDTO>>>
 {
-    public async Task<HandlerResult<PagedResult<FriendRequestDTO>>> Handle(GetFriendRequestsListQuery request, CancellationToken ct)
+    public async Task<Result<PagedResult<FriendRequestDTO>>> Handle(GetFriendRequestsListQuery request, CancellationToken ct)
     {
         var frienshipsQuery = context.Friendships;
 

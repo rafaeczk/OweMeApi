@@ -114,7 +114,7 @@ internal class ApplicationDbContextInitialiser(AppDbContext context, UserManager
         var user2 = await _userManager.FindByNameAsync("u2@gmail.com");
         var user3 = await _userManager.FindByNameAsync("u3@gmail.com");
 
-        if (user1 == null || user2 == null || user3 == null)
+        if (user1 is null || user2 is null || user3 is null)
             throw new Exception($"User not found while mocking friendships. u1: {user1?.UserName}, u2: {user2?.UserName}, u3: {user3?.UserName}");
 
         var friendships = new List<Friendship>

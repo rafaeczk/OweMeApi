@@ -1,4 +1,5 @@
 ﻿using Application.Common.DTOs;
+using Application.Common.Extensions;
 using Application.Common.Pagination;
 using Application.Modules.Users.ChangeUserPassword;
 using Application.Modules.Users.GetMe;

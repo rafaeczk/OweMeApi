@@ -1,4 +1,5 @@
-﻿using Application.Modules.FriendCodes.GenerateMyCode;
+﻿using Application.Common.Extensions;
+using Application.Modules.FriendCodes.GetMyCode;
 using Infrastructure.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -13,10 +14,10 @@ public class FriendCodesController(IMediator mediator) : ControllerBase
 {
     private readonly IMediator _mediator = mediator;
 
-    [HttpGet("generate-code")]
-    public async Task<ActionResult<FriendCodeDTO>> GenerateMyCode()
+    [HttpGet("get-my-code")]
+    public async Task<ActionResult<FriendCodeDTO>> GetMyCode()
     {
-        var result = await _mediator.Send(new GenerateMyCodeCommand());
+        var result = await _mediator.Send(new GetMyCodeCommand());
 
         return result.ToActionResult();
     }

@@ -1,7 +1,6 @@
-﻿using Application.Common;
-using Application.Common.Interfaces;
+﻿using Application.Common.Interfaces;
 using Application.Modules.Debts._Filters;
-using Domain.Entities;
+using Domain.Common;
 using Domain.Enums;
 using Domain.Exceptions;
 using Domain.ValueObjects;
@@ -11,14 +10,14 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Modules.Debts.CreatePayment;
 
-public record CreatePaymentCommand(Guid DebtId, decimal Amount, string? Note, string PaymentMethod) : IRequest<HandlerResult<Guid>>;
+public record CreatePaymentCommand(Guid DebtId, decimal Amount, string? Note, string PaymentMethod) : IRequest<Result<Guid>>;
 
 public class CreatePaymentHandler(
     IAppDbContext context,
     IUserContext user,
-    ILogger<CreatePaymentHandler> logger) : IRequestHandler<CreatePaymentCommand, HandlerResult<Guid>>
+    ILogger<CreatePaymentHandler> logger) : IRequestHandler<CreatePaymentCommand, Result<Guid>>
 {
-    public async Task<HandlerResult<Guid>> Handle(CreatePaymentCommand request, CancellationToken ct)
+    public async Task<Result<Guid>> Handle(CreatePaymentCommand request, CancellationToken ct)
     {
         var debt = await context.Debts
             .DebtOwnerOnly(user)
@@ -26,8 +25,8 @@ public class CreatePaymentHandler(
             .Include(d => d.LedgerEvents)
             .SingleOrDefaultAsync(ct);
 
-        if (debt == null)
-            return HandlerResult.Failure("Debt not found", ErrorCode.NotFound);
+        if (debt is null)
+            return Result.Failure("Debt not found", FailureReason.NotFound);
 
         using var transaction = await context.BeginTransactionAsync(ct);
 
@@ -54,9 +53,9 @@ public class CreatePaymentHandler(
         }
         catch (DebtIsSettledException exception)
         {
-            logger.LogError(exception, "Change debt amount error for: UserId={UserId}, DebtId={DebtId}", user.Id, debt.Id);
+            logger.LogError(exception, "Change payment error for: UserId={UserId}, DebtId={DebtId}", user.Id, debt.Id);
 
-            return HandlerResult.Failure("Debt is settled", ErrorCode.BadRequest);
+            return Result.Failure("Debt is settled", FailureReason.BadRequest);
         }
         catch (Exception exception)
         {
@@ -68,7 +67,7 @@ public class CreatePaymentHandler(
 
             logger.LogError(exception, "Create payment error for: UserId={UserId}, DebtId={DebtId}", user.Id, debt.Id);
 
-            return HandlerResult.Failure("Technical error", ErrorCode.InternalError);
+            return Result.Failure("Technical error", FailureReason.InternalError);
         }
     }
 }

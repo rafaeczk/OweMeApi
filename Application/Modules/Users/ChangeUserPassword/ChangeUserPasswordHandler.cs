@@ -1,20 +1,20 @@
 ﻿using MediatR;
-using Application.Common;
+using Domain.Common;
 using Application.Common.Interfaces;
 
 namespace Application.Modules.Users.ChangeUserPassword;
 
-public record ChangeUserPasswordCommand(Guid UserId, string Password) : IRequest<HandlerResult>;
+public record ChangeUserPasswordCommand(Guid UserId, string Password) : IRequest<Result>;
 
-public class ChangeUserPasswordHandler(IIdentityService identityService) : IRequestHandler<ChangeUserPasswordCommand, HandlerResult>
+public class ChangeUserPasswordHandler(IIdentityService identityService) : IRequestHandler<ChangeUserPasswordCommand, Result>
 {
-    public async Task<HandlerResult> Handle(ChangeUserPasswordCommand request, CancellationToken ct)
+    public async Task<Result> Handle(ChangeUserPasswordCommand request, CancellationToken ct)
     {
         var result = await identityService.ResetPassword(request.UserId, request.Password);
 
         if (!result.IsSuccess)
-            return HandlerResult.Failure(result.Errors, ErrorCode.BadRequest);
+            return Result.Failure(result.Errors, FailureReason.BadRequest);
 
-        return HandlerResult.Success();
+        return Result.Success();
     }
 }

@@ -6,6 +6,7 @@ public record DebtDTO(
     string? Description,
     Guid CreditorId,
     Guid DebtorId,
+    DateTime CreatedAt,
     decimal TotalAmount,
     decimal TotalPayments,
     DebtSummaryDTO Summary,
