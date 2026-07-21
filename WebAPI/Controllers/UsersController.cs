@@ -30,10 +30,12 @@ public class UsersController(IMediator mediator) : ControllerBase
     [HttpGet]
     [Authorize(Policy = AuthPolicies.Admin)]
     public async Task<ActionResult<PagedResult<UserDTO>>> GetUsers(
-        [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 20)
+        [FromQuery] int? pageNumber,
+        [FromQuery] int? pageSize,
+        [FromQuery] string? orderBy,
+        [FromQuery] bool? orderDesc)
     {
-        var result = await _mediator.Send(new GetUsersQuery(new(pageNumber, pageSize)));
+        var result = await _mediator.Send(new GetUsersQuery(new(pageNumber, pageSize), new(orderBy, orderDesc)));
 
         return result.ToActionResult();
     }

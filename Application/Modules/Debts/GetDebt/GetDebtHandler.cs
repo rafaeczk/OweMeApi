@@ -46,6 +46,8 @@ public class GetDebtHandler(
             debt.Description,
             debt.CreditorId,
             debt.DebtorId,
+            debt.CreditorId == user.Id,
+            debt.DebtorId == user.Id,
             debt.CreatedAt,
             totalAmount,
             totalPayments,

@@ -1,4 +1,5 @@
 ﻿using Application.Common.DTOs;
+using Application.Common.Ordering;
 using Application.Common.Pagination;
 using Domain.Common;
 using Domain.Entities;
@@ -11,7 +12,7 @@ public interface IIdentityService
 
     Task<Result<UserDTO>> GetUser(Guid userId);
 
-    Task<PagedResult<UserDTO>> GetUsersAsync(PaginationParams pagination);
+    Task<PagedResult<UserDTO>> GetUsersAsync(PaginationParams pagination, OrderingParams ordering);
 
     Task<Result<string>> SignIn(string email, string password);
 

@@ -1,4 +1,5 @@
 ﻿using Application.Common.Interfaces;
+using Application.Common.Ordering;
 using Application.Common.Pagination;
 using Application.Modules.Debts._Filters;
 using Domain.Common;
@@ -18,7 +19,8 @@ public enum QEDebtState
     Settled, Unsettled, Any
 }
 
-public record GetDebtsQuery(QEUserRoleInDebt Role, QEDebtState State, PaginationParams Pagination) : PaginationParams(Pagination), IRequest<Result<PagedResult<DebtListItemDTO>>>;
+public record GetDebtsQuery(QEUserRoleInDebt Role, QEDebtState State, PaginationParams Pagination, OrderingParams Ordering)
+    : IRequest<Result<PagedResult<DebtListItemDTO>>>;
 
 public class GetDebtsHandler(
     IAppDbContext context,
@@ -45,7 +47,8 @@ public class GetDebtsHandler(
         var totalDebts = await debtsQuery.CountAsync(ct);
 
         var debts = await debtsQuery
-            .Paginate(request)
+            .Order(request.Ordering)
+            .Paginate(request.Pagination)
             .AsNoTracking()
             .ToListAsync(ct);
 
@@ -73,6 +76,8 @@ public class GetDebtsHandler(
                 d.Description,
                 d.CreditorId,
                 d.DebtorId,
+                d.CreditorId == user.Id,
+                d.DebtorId == user.Id,
                 d.CreatedAt,
                 events.Where(e => e.EventType == LedgerEventTypes.Adjustment)
                     .OrderByDescending(e => e.CreatedAt)
@@ -105,6 +110,6 @@ public class GetDebtsHandler(
             );
         }).ToList();
 
-        return new PagedResult<DebtListItemDTO>(debtDTOs, totalDebts, request);
+        return new PagedResult<DebtListItemDTO>(debtDTOs, totalDebts, request.Pagination);
     }
 }

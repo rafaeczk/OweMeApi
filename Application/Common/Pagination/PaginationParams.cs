@@ -8,10 +8,10 @@ public record PaginationParams
         PageSize = other.PageSize;
     }
 
-    public PaginationParams(int pageNumber, int pageSize)
+    public PaginationParams(int? pageNumber, int? pageSize)
     {
-        PageNumber = pageNumber;
-        PageSize = pageSize;
+        PageNumber = pageNumber ?? 1;
+        PageSize = pageSize ?? 10;
     }
 
 

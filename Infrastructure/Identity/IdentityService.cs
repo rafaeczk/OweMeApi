@@ -1,5 +1,6 @@
 ﻿using Application.Common.DTOs;
 using Application.Common.Interfaces;
+using Application.Common.Ordering;
 using Application.Common.Pagination;
 using Domain.Common;
 using Domain.Entities;
@@ -26,13 +27,13 @@ public class IdentityService(
         return await _userManager.Users.AnyAsync(u => u.Id == userId);
     }
 
-    public async Task<PagedResult<UserDTO>> GetUsersAsync(PaginationParams pagination)
+    public async Task<PagedResult<UserDTO>> GetUsersAsync(PaginationParams pagination, OrderingParams ordering)
     {
         var usersQuery = _userManager.Users;
 
         var totalUsers = await usersQuery.CountAsync();
 
-        usersQuery = usersQuery.Paginate(pagination, u => u.Id);
+        usersQuery = usersQuery.Order(ordering).Paginate(pagination);
 
         var users = await usersQuery.ToListAsync();
 

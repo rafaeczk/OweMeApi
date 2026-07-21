@@ -6,6 +6,8 @@ public record DebtListItemDTO(
     string? Description,
     Guid CreditorId,
     Guid DebtorId,
+    bool YouAreCreditor,
+    bool YouAreDebtor,
     DateTime CreatedAt,
     decimal TotalAmount,
     decimal TotalPayments,

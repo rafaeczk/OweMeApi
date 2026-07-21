@@ -3,10 +3,11 @@ using Application.Common.Interfaces;
 using Application.Common.Pagination;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Application.Common.Ordering;
 
 namespace Application.Modules.Friends.GetFriendsList;
 
-public record GetFriendsListQuery(PaginationParams Pagination) : PaginationParams(Pagination), IRequest<Result<PagedResult<FriendListItemDTO>>>;
+public record GetFriendsListQuery(PaginationParams Pagination, OrderingParams Ordering) : IRequest<Result<PagedResult<FriendListItemDTO>>>;
 
 public class GetFriendsListHandler(
     IAppDbContext context,
@@ -20,7 +21,8 @@ public class GetFriendsListHandler(
         var totalFriendships = await friendshipsQuery.CountAsync(ct);
 
         var friends = await friendshipsQuery
-            .Paginate(request, f => f.AcceptedAt ?? f.CreatedAt)
+            .Order(request.Ordering)
+            .Paginate(request.Pagination)
             .Select(fs => new FriendListItemDTO(
                 fs.UserId == user.Id ? fs.Friend.Id : fs.User.Id,
                 fs.UserId == user.Id ? fs.Friend.Email! : fs.User.Email!,
@@ -29,6 +31,6 @@ public class GetFriendsListHandler(
             ))
             .ToListAsync(ct);
 
-        return new PagedResult<FriendListItemDTO>(friends, totalFriendships, request);
+        return new PagedResult<FriendListItemDTO>(friends, totalFriendships, request.Pagination);
     }
 }

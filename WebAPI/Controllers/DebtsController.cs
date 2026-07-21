@@ -1,5 +1,4 @@
-﻿using Application.Common;
-using Application.Common.Extensions;
+﻿using Application.Common.Extensions;
 using Application.Common.Pagination;
 using Application.Modules.Debts.ChangeDebtAmount;
 using Application.Modules.Debts.ChangeDebtApprovement;
@@ -27,8 +26,10 @@ public class DebtsController(IMediator mediator) : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<PagedResult<DebtListItemDTO>>> GetDebts(
-        [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 20,
+        [FromQuery] int? pageNumber,
+        [FromQuery] int? pageSize,
+        [FromQuery] string? orderBy,
+        [FromQuery] bool? orderDesc,
         [FromQuery, AllowedValues("creditor", "debtor", "any")] string role = "any",
         [FromQuery, AllowedValues("settled", "unsettled", "any")] string state = "any")
     {
@@ -46,7 +47,7 @@ public class DebtsController(IMediator mediator) : ControllerBase
             _ => QEDebtState.Any,
         };
 
-        var result = await _mediator.Send(new GetDebtsQuery(userRoleInDebt, debtState, new(pageNumber, pageSize)));
+        var result = await _mediator.Send(new GetDebtsQuery(userRoleInDebt, debtState, new(pageNumber, pageSize), new(orderBy, orderDesc)));
 
         return result.ToActionResult();
     }
