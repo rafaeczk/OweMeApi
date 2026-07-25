@@ -29,7 +29,7 @@ public class CreateDebtHandler(
         {
             var debt = Debt.Create(request.Title, request.Description, user.Id, request.DebtorId);
 
-            var adjustment = debt.CreateAdjustment(new Money(request.Amount), "Initial debt amount");
+            var adjustment = debt.CreateAdjustment(user.Id, new Money(request.Amount), "Initial debt amount");
 
             context.Debts.Add(debt);
             context.DebtAdjustments.Add(adjustment);
@@ -40,9 +40,9 @@ public class CreateDebtHandler(
 
             return debt.Id;
         }
-        catch(Exception exception)
+        catch (Exception exception)
         {
-            logger.LogError(exception, "Create debt error for {DebtorId}", request.DebtorId);
+            logger.LogError(exception, "Create debt error for: UserId={UserId}", user.Id);
 
             return Result.Failure("Technical error", FailureReason.InternalError);
         }

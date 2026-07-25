@@ -12,3 +12,7 @@ public class InvalidPaymentMethodException(string method)
 public class DebtIsSettledException() : DomainException("Debt is already settled");
 
 public class DebtIsNotFullyApprovedException() : DomainException("Debt is not approved from both sides");
+
+public class DebtHasPendingPaymentsException() : DomainException("Debt has pending payments");
+
+public class UnauthorizedDebtAccessException() : DomainException("Unauthorized debt access");

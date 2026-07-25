@@ -33,7 +33,7 @@ public class ChangeDebtAmountHandler(
 
         try
         {
-            var adjustment = debt.CreateAdjustment(new Money(request.Amount), request.Note);
+            var adjustment = debt.CreateAdjustment(user.Id, new Money(request.Amount), request.Note);
 
             context.DebtAdjustments.Add(adjustment);
             context.LedgerEvents.Add(adjustment.LedgerEvent);
@@ -43,7 +43,13 @@ public class ChangeDebtAmountHandler(
 
             return Result.Success();
         }
-        catch(DebtIsSettledException exception)
+        catch (UnauthorizedDebtAccessException exception)
+        {
+            logger.LogError(exception, "Change debt amount error for: UserId={UserId}, DebtId={DebtId}", user.Id, debt.Id);
+
+            return Result.Failure("Unauthorized", FailureReason.Unauthorized);
+        }
+        catch (DebtIsSettledException exception)
         {
             logger.LogError(exception, "Change debt amount error for: UserId={UserId}, DebtId={DebtId}", user.Id, debt.Id);
 
@@ -51,12 +57,6 @@ public class ChangeDebtAmountHandler(
         }
         catch (Exception exception)
         {
-            try
-            {
-                await transaction.RollbackAsync(ct);
-            }
-            catch { }
-
             logger.LogError(exception, "Change debt amount error for: UserId={UserId}, DebtId={DebtId}", user.Id, debt.Id);
 
             return Result.Failure("Technical error", FailureReason.InternalError);

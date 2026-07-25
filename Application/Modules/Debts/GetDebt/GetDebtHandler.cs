@@ -16,7 +16,7 @@ public class GetDebtHandler(
     public async Task<Result<DebtDTO>> Handle(GetDebtQuery request, CancellationToken ct)
     {
         var debt = await context.Debts
-            .DebtOwnerOnly(user)
+            .DebtParticipantOnly(user)
             .Include(d => d.LedgerEvents)
                 .ThenInclude(e => e.Payment)
             .Include(d => d.LedgerEvents)
@@ -31,8 +31,6 @@ public class GetDebtHandler(
         var totalAmount = debt.GetTotalAmount();
 
         var totalPayments = debt.GetTotalPayments();
-
-        var summary = Debt.CalcDebtSummary(totalAmount, totalPayments, debt.CreditorId, debt.DebtorId);
 
         var creditorApproves = debt.GetCreditorApproves();
 
@@ -51,7 +49,6 @@ public class GetDebtHandler(
             debt.CreatedAt,
             totalAmount,
             totalPayments,
-            summary,
             creditorApproves,
             debtorApproves,
             debtIsSettled

@@ -20,7 +20,7 @@ public class CreatePaymentHandler(
     public async Task<Result<Guid>> Handle(CreatePaymentCommand request, CancellationToken ct)
     {
         var debt = await context.Debts
-            .DebtOwnerOnly(user)
+            .DebtParticipantOnly(user)
             .Where(d => d.Id == request.DebtId)
             .Include(d => d.LedgerEvents)
             .SingleOrDefaultAsync(ct);
@@ -33,6 +33,7 @@ public class CreatePaymentHandler(
         try
         {
             var payment = debt.CreatePayment(
+                user.Id,
                 new Money(request.Amount),
                 user.Id,
                 (debt.CreditorId == user.Id) ? debt.DebtorId : debt.CreditorId,
@@ -51,6 +52,12 @@ public class CreatePaymentHandler(
 
             return payment.Id;
         }
+        catch (UnauthorizedDebtAccessException exception)
+        {
+            logger.LogError(exception, "Change payment error for: UserId={UserId}, DebtId={DebtId}", user.Id, debt.Id);
+
+            return Result.Failure("Anauthorized", FailureReason.Unauthorized);
+        }
         catch (DebtIsSettledException exception)
         {
             logger.LogError(exception, "Change payment error for: UserId={UserId}, DebtId={DebtId}", user.Id, debt.Id);
@@ -59,12 +66,6 @@ public class CreatePaymentHandler(
         }
         catch (Exception exception)
         {
-            try
-            {
-                await transaction.RollbackAsync(ct);
-            }
-            catch { }
-
             logger.LogError(exception, "Create payment error for: UserId={UserId}, DebtId={DebtId}", user.Id, debt.Id);
 
             return Result.Failure("Technical error", FailureReason.InternalError);

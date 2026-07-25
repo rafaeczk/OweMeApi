@@ -34,7 +34,7 @@ public class GetDebtsHandler(
         {
             QEUserRoleInDebt.Creditor => debtsQuery.DebtCreditorOnly(user),
             QEUserRoleInDebt.Debtor => debtsQuery.DebtDebtorOnly(user),
-            _ => debtsQuery.DebtOwnerOnly(user),
+            _ => debtsQuery.DebtParticipantOnly(user),
         };
 
         debtsQuery = request.State switch

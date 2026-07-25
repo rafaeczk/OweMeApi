@@ -1,6 +1,5 @@
 ﻿using Domain.Common;
 using Domain.Enums;
-using Domain.Results;
 using Domain.ValueObjects;
 using Domain.Exceptions;
 
@@ -38,10 +37,9 @@ public class Debt : BaseAuditableEntity
         };
     }
 
-    public LedgerEvent CreateApprovement(string eventType)
+    public LedgerEvent CreateApprovement(Guid actorId, string eventType)
     {
-        if (GetIsSettled())
-            throw new DebtIsSettledException();
+        EnsureCanChangeApprovement(actorId);
 
         if (!LedgerEventTypes.VerifyApprovement(eventType))
             throw new InvalidLedgerEventApprovementTypeException(eventType);
@@ -55,11 +53,7 @@ public class Debt : BaseAuditableEntity
 
     public LedgerEvent CreateSettlement()
     {
-        if (GetIsSettled())
-            throw new DebtIsSettledException();
-
-        if(!GetCreditorApproves() || !GetDebtorApproves())
-            throw new DebtIsNotFullyApprovedException();
+        EnsureCanBeSettled();
 
         var settlementEvent = LedgerEvent.Create(this, LedgerEventTypes.DebtSettlement);
 
@@ -68,10 +62,9 @@ public class Debt : BaseAuditableEntity
         return settlementEvent;
     }
 
-    public DebtAdjustment CreateAdjustment(Money money, string note)
+    public DebtAdjustment CreateAdjustment(Guid actorId, Money money, string note)
     {
-        if (GetIsSettled())
-            throw new DebtIsSettledException();
+        EnsureCanChangeAmount(actorId);
 
         var adjustment = DebtAdjustment.Create(money, note);
 
@@ -82,10 +75,9 @@ public class Debt : BaseAuditableEntity
         return adjustment;
     }
 
-    public DebtPayment CreatePayment(Money money, Guid payerId, Guid receiverId, string method, string? note)
+    public DebtPayment CreatePayment(Guid actorId, Money money, Guid payerId, Guid receiverId, string method, string? note)
     {
-        if (GetIsSettled())
-            throw new DebtIsSettledException();
+        EnsureCanCreatePayment(actorId);
 
         var payment = DebtPayment.Create(
             money,
@@ -131,18 +123,6 @@ public class Debt : BaseAuditableEntity
                         : 0m);
     }
 
-    public static DebtSummaryResult CalcDebtSummary(decimal totalAmount, decimal totalPayments, Guid creditorId, Guid debtorId)
-    {
-        var diff = totalAmount - totalPayments;
-
-        if (diff > 0)
-            return new DebtSummaryResult(debtorId, creditorId, new Money(Math.Abs(diff)));
-        else if (diff < 0)
-            return new DebtSummaryResult(creditorId, debtorId, new Money(Math.Abs(diff)));
-        else
-            return new DebtSummaryResult(Guid.Empty, Guid.Empty, new Money(0m));
-    }
-
     public bool GetCreditorApproves()
     {
         return LedgerEvents
@@ -161,6 +141,16 @@ public class Debt : BaseAuditableEntity
             .FirstOrDefault();
     }
 
+    public bool GetParticipantApproves(Guid userId)
+    {
+        if (userId == CreditorId)
+            return GetCreditorApproves();
+        else if (userId == DebtorId)
+            return GetDebtorApproves();
+        else
+            return false;
+    }
+
     public bool GetIsSettled()
     {
         return LedgerEvents.Any(e => e.EventType == LedgerEventTypes.DebtSettlement);
@@ -173,5 +163,117 @@ public class Debt : BaseAuditableEntity
             .Any(e => e.Payment!.StatusChanges
                 .OrderByDescending(e => e.LedgerEvent.CreatedAt)
                 .First().Status == DebtPaymentStatus.Pending);
+    }
+
+    // DOMAIN GUARDS
+
+    public void EnsureCanChangeApprovement(Guid userId)
+    {
+        EnsureIsParticipant(userId);
+        EnsureNotSettled();
+        EnsureNoPendingPayments();
+    }
+
+    public void EnsureCanBeSettled()
+    {
+        EnsureNotSettled();
+
+        if (!GetCreditorApproves() || !GetDebtorApproves())
+            throw new DebtIsNotFullyApprovedException();
+    }
+
+    public void EnsureCanCreatePayment(Guid userId)
+    {
+        EnsureIsParticipant(userId);
+        EnsureNotSettled();
+    }
+
+    public void EnsureCanChangeAmount(Guid userId)
+    {
+        EnsureIsCreditor(userId);
+        EnsureNotSettled();
+    }
+
+    public void EnsureCanChangeInformation(Guid userId)
+    {
+        EnsureIsCreditor(userId);
+    }
+
+    private void EnsureNotSettled()
+    {
+        if (GetIsSettled())
+            throw new DebtIsSettledException();
+    }
+
+    private void EnsureNoPendingPayments()
+    {
+        if (GetHasPendingPayments())
+            throw new DebtHasPendingPaymentsException();
+    }
+
+    private void EnsureIsParticipant(Guid userId)
+    {
+        if (userId != CreditorId && userId != DebtorId)
+            throw new UnauthorizedDebtAccessException();
+    }
+
+    private void EnsureIsCreditor(Guid userId)
+    {
+        if(userId != CreditorId)
+            throw new UnauthorizedDebtAccessException();
+    }
+
+    // AVAILABLE ACTIONS
+
+    public bool GetUserCanChangeApprovement(Guid userId)
+    {
+        try
+        {
+            EnsureCanChangeApprovement(userId);
+            return true;
+        }
+        catch (DomainException)
+        {
+            return false;
+        }
+    }
+
+    public bool GetUserCanChangeInformation(Guid userId)
+    {
+        try
+        {
+            EnsureCanChangeInformation(userId);
+            return true;
+        }
+        catch (DomainException)
+        {
+            return false;
+        }
+    }
+
+    public bool GetUserCanChangeAmount(Guid userId)
+    {
+        try
+        {
+            EnsureCanChangeAmount(userId);
+            return true;
+        }
+        catch (DomainException)
+        {
+            return false;
+        }
+    }
+
+    public bool GetUserCanCreatePayment(Guid userId)
+    {
+        try
+        {
+            EnsureCanCreatePayment(userId);
+            return true;
+        }
+        catch (DomainException)
+        {
+            return false;
+        }
     }
 }

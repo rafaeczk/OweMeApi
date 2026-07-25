@@ -19,7 +19,7 @@ public class ChangeDebtApprovementHandler(
     public async Task<Result> Handle(ChangeDebtApprovementCommand request, CancellationToken ct)
     {
         var debt = await context.Debts
-            .DebtOwnerOnly(user)
+            .DebtParticipantOnly(user)
             .Include(d => d.LedgerEvents)
                 .ThenInclude(e => e.Payment)
                     .ThenInclude(p => p!.StatusChanges)
@@ -27,12 +27,6 @@ public class ChangeDebtApprovementHandler(
 
         if (debt is null)
             return Result.Failure("Debt not found", FailureReason.NotFound);
-
-        if (debt.GetIsSettled())
-            return Result.Failure("Debt is settled", FailureReason.BadRequest);
-
-        if (debt.GetHasPendingPayments())
-            return Result.Failure("Debt has pending payments", FailureReason.BadRequest);
 
         using var transaction = await context.BeginTransactionAsync(ct);
 
@@ -49,7 +43,7 @@ public class ChangeDebtApprovementHandler(
             {
                 var eventType = request.Approve ? LedgerEventTypes.CreditorDebtApprovement : LedgerEventTypes.CreditorDebtDisapprovement;
 
-                var approvementEvent = debt.CreateApprovement(eventType);
+                var approvementEvent = debt.CreateApprovement(user.Id, eventType);
                 context.LedgerEvents.Add(approvementEvent);
 
                 if (debtorApproves && eventType == LedgerEventTypes.CreditorDebtApprovement)
@@ -64,7 +58,7 @@ public class ChangeDebtApprovementHandler(
             {
                 var eventType = request.Approve ? LedgerEventTypes.DebtorDebtApprovement : LedgerEventTypes.DebtorDebtDisapprovement;
 
-                var approvementEvent = debt.CreateApprovement(eventType);
+                var approvementEvent = debt.CreateApprovement(user.Id, eventType);
                 context.LedgerEvents.Add(approvementEvent);
 
                 if (creditorApproves && eventType == LedgerEventTypes.DebtorDebtApprovement)
@@ -88,20 +82,32 @@ public class ChangeDebtApprovementHandler(
 
             return Result.Success();
         }
+        catch (UnauthorizedDebtAccessException exception)
+        {
+            logger.LogError(exception, "Change debt approvement error for: UserId={UserId}, DebtId={DebtId}", user.Id, debt.Id);
+
+            return Result.Failure("Unauthorized", FailureReason.Unauthorized);
+        }
         catch (DebtIsSettledException exception)
         {
             logger.LogError(exception, "Change debt approvement error for: UserId={UserId}, DebtId={DebtId}", user.Id, debt.Id);
 
             return Result.Failure("Debt is settled", FailureReason.BadRequest);
         }
+        catch (DebtHasPendingPaymentsException exception)
+        {
+            logger.LogError(exception, "Change debt approvement error for: UserId={UserId}, DebtId={DebtId}", user.Id, debt.Id);
+
+            return Result.Failure("Debt has pending payments", FailureReason.BadRequest);
+        }
+        catch (DebtIsNotFullyApprovedException exception)
+        {
+            logger.LogError(exception, "Change debt approvement error for: UserId={UserId}, DebtId={DebtId}", user.Id, debt.Id);
+
+            return Result.Failure("Debt is not fully approved to be settled", FailureReason.BadRequest);
+        }
         catch (Exception exception)
         {
-            try
-            {
-                await transaction.RollbackAsync(ct);
-            }
-            catch { }
-
             logger.LogError(exception, "Change debt approvement error for {UserId}", user.Id);
 
             return Result.Failure("Technical error", FailureReason.InternalError);

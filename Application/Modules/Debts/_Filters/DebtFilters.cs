@@ -6,7 +6,7 @@ namespace Application.Modules.Debts._Filters;
 
 public static class DebtFilters
 {
-    public static IQueryable<T> DebtOwnerOnly<T>(this IQueryable<T> query, IUserContext user)
+    public static IQueryable<T> DebtParticipantOnly<T>(this IQueryable<T> query, IUserContext user)
         where T : Debt
     {
         switch (user.Role)

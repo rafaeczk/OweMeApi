@@ -11,7 +11,6 @@ public record DebtDTO(
     DateTime CreatedAt,
     decimal TotalAmount,
     decimal TotalPayments,
-    DebtSummaryDTO Summary,
     bool CreditorApproves,
     bool DebtorApproves,
     bool IsSettled

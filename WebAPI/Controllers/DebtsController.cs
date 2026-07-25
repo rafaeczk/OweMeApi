@@ -6,6 +6,7 @@ using Application.Modules.Debts.CreateDebt;
 using Application.Modules.Debts.CreatePayment;
 using Application.Modules.Debts.EditDebtInformation;
 using Application.Modules.Debts.GetDebt;
+using Application.Modules.Debts.GetDebtActions;
 using Application.Modules.Debts.GetDebtHistory;
 using Application.Modules.Debts.GetDebts;
 using Application.Modules.Debts.VerifyPayment;
@@ -112,6 +113,14 @@ public class DebtsController(IMediator mediator) : ControllerBase
     public async Task<ActionResult> ChangeDebtApprovement(Guid debtId, [FromBody] ChangeDebtApprovementDTO dto)
     {
         var result = await _mediator.Send(new ChangeDebtApprovementCommand(debtId, dto.Approve));
+
+        return result.ToActionResult();
+    }
+
+    [HttpGet("{debtId}/actions")]
+    public async Task<ActionResult<DebtActionsDTO>> GetDebtActions(Guid debtId)
+    {
+        var result = await _mediator.Send(new GetDebtActionsQuery(debtId));
 
         return result.ToActionResult();
     }

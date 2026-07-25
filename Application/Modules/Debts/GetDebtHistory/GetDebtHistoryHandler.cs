@@ -25,7 +25,7 @@ public class GetDebtHistoryHandler(
     public async Task<Result<List<DebtHistoryListItemDTO>>> Handle(GetDebtHistoryQuery request, CancellationToken ct)
     {
         var debtQuery = context.Debts
-            .DebtOwnerOnly(user)
+            .DebtParticipantOnly(user)
             .Where(d => d.Id == request.DebtId);
 
         if (!await debtQuery.AnyAsync(ct))
