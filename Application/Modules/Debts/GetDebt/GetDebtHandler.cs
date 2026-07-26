@@ -3,7 +3,6 @@ using Application.Common.Interfaces;
 using Application.Modules.Debts._Filters;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Domain.Entities;
 
 namespace Application.Modules.Debts.GetDebt;
 

@@ -108,7 +108,7 @@ public class ChangeDebtApprovementHandler(
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Change debt approvement error for {UserId}", user.Id);
+            logger.LogError(exception, "Change debt approvement error for {UserId}, DebtId={DebtId}", user.Id, debt.Id);
 
             return Result.Failure("Technical error", FailureReason.InternalError);
         }

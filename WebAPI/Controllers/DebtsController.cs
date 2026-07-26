@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using Domain.Enums;
+using Application.Modules.Debts.GetDebtSummary;
 
 namespace WebAPI.Controllers;
 
@@ -99,6 +100,14 @@ public class DebtsController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<List<DebtHistoryListItemDTO>>> GetDebtHistory(Guid debtId)
     {
         var result = await _mediator.Send(new GetDebtHistoryQuery(debtId));
+
+        return result.ToActionResult();
+    }
+
+    [HttpGet("{debtId}/summary")]
+    public async Task<ActionResult<List<DebtSummaryDTO>>> GetDebtSummary(Guid debtId)
+    {
+        var result = await _mediator.Send(new GetDebtSummaryQuery(debtId));
 
         return result.ToActionResult();
     }
