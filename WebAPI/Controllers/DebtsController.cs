@@ -1,4 +1,5 @@
-﻿using Application.Common.Extensions;
+﻿using Application.Common.DTOs;
+using Application.Common.Extensions;
 using Application.Common.Pagination;
 using Application.Modules.Debts.ChangeDebtAmount;
 using Application.Modules.Debts.ChangeDebtApprovement;
@@ -15,6 +16,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using Domain.Enums;
 
 namespace WebAPI.Controllers;
 
@@ -123,5 +125,19 @@ public class DebtsController(IMediator mediator) : ControllerBase
         var result = await _mediator.Send(new GetDebtActionsQuery(debtId));
 
         return result.ToActionResult();
+    }
+
+    [HttpGet("payment-methods")]
+    public async Task<ActionResult<List<EnumItemDTO>>> GetPaymentMethods()
+    {
+        return Ok(DebtPaymentMethod.ValueList.Select(
+            code => new EnumItemDTO(
+                code,
+                code switch
+                {
+                    DebtPaymentMethod.Cash => "Cash",
+                    DebtPaymentMethod.Transfer => "Bank transfer",
+                    _ => string.Empty
+                })));
     }
 }
