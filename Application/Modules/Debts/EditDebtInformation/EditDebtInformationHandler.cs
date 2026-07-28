@@ -6,13 +6,13 @@ using Application.Modules.Debts._Filters;
 
 namespace Application.Modules.Debts.EditDebtInformation;
 
-public record EditDebtInformationCommand(Guid DebtId, string Title, string? Description) : IRequest<Result>;
+public record EditDebtInformationCommand(Guid DebtId, string Title, string? Description) : IRequest<Result<DebtInformationDTO>>;
 
 public class EditDebtInformationHandler(
     IAppDbContext context,
-    IUserContext user) : IRequestHandler<EditDebtInformationCommand, Result>
+    IUserContext user) : IRequestHandler<EditDebtInformationCommand, Result<DebtInformationDTO>>
 {
-    public async Task<Result> Handle(EditDebtInformationCommand request, CancellationToken ct)
+    public async Task<Result<DebtInformationDTO>> Handle(EditDebtInformationCommand request, CancellationToken ct)
     {
         var debt = await context.Debts
             .DebtCreditorOnly(user)
@@ -25,6 +25,6 @@ public class EditDebtInformationHandler(
 
         await context.SaveChangesAsync(ct);
 
-        return Result.Success();
+        return new DebtInformationDTO(debt.Title, debt.Description);
     }
 }

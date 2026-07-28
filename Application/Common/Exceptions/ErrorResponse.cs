@@ -14,7 +14,7 @@ public class ErrorResponse
             Status = errorResponse.Status,
             Extensions =
             {
-                { "Errors", errorResponse.Errors },
+                { "errors", errorResponse.Errors },
             }
         };
     }

@@ -73,7 +73,7 @@ public class DebtsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPut("{debtId}")]
-    public async Task<ActionResult<Guid>> CreateDebt(Guid debtId, [FromBody] EditDebtInformationDTO dto)
+    public async Task<ActionResult<DebtInformationDTO>> EditDebtInformation(Guid debtId, [FromBody] EditDebtInformationDTO dto)
     {
         var result = await _mediator.Send(new EditDebtInformationCommand(debtId, dto.Title, dto.Description));
 
