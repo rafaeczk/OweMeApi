@@ -56,4 +56,37 @@ public class DebtPayment : BaseEntity
 
         return statusChange;
     }
+
+    // GETTERS
+
+    public string GetCurrentStatus()
+    {
+        return StatusChanges.OrderBy(sc => sc.LedgerEvent.CreatedAt).Last().Status;
+    }
+
+    // DOMAIN GUARDS
+
+    public void EnsureCanChangeStatus(Guid userId)
+    {
+        if (userId != ReceiverId)
+            throw new UnauthorizedDebtAccessException();
+
+        if (GetCurrentStatus() != DebtPaymentStatus.Pending)
+            throw new VerificationOfVerifiedPaymentException();
+    }
+
+    // AVAILABLE ACTIONS
+
+    public bool GetUserCanChangeStatus(Guid userId)
+    {
+        try
+        {
+            EnsureCanChangeStatus(userId);
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
 }

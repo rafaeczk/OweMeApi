@@ -63,9 +63,10 @@ public class GetDebtHistoryHandler(
                         e.Payment.Money.Amount,
                         e.Payment.PayerId,
                         e.Payment.ReceiverId,
+                        e.Payment.GetUserCanChangeStatus(user.Id),
                         e.Payment.Method,
                         e.Payment.Note,
-                        statusChanges!.Select(sc => sc.Status).Last(),
+                        e.Payment.GetCurrentStatus(),
                         [.. statusChanges
                             !.Select(sc => new DebtHistoryListItemPaymentHistoryListItemDTO(
                                 sc.Id,

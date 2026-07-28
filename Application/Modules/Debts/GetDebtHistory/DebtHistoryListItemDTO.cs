@@ -24,6 +24,7 @@ public record DebtHistoryListItemPaymentDTO(
     decimal Amount, 
     Guid PayerId, 
     Guid ReceiverId,
+    bool UserCanVerify,
     string Method, 
     string? Note,
     string CurrentStatus,

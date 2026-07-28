@@ -16,3 +16,5 @@ public class DebtIsNotFullyApprovedException() : DomainException("Debt is not ap
 public class DebtHasPendingPaymentsException() : DomainException("Debt has pending payments");
 
 public class UnauthorizedDebtAccessException() : DomainException("Unauthorized debt access");
+
+public class VerificationOfVerifiedPaymentException() : DomainException("The payment has been already verified");
