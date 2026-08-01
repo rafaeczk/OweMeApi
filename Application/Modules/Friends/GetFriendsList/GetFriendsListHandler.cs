@@ -4,10 +4,11 @@ using Application.Common.Pagination;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Application.Common.Ordering;
+using Application.Modules.Users._Filters;
 
 namespace Application.Modules.Friends.GetFriendsList;
 
-public record GetFriendsListQuery(PaginationParams Pagination, OrderingParams Ordering) : IRequest<Result<PagedResult<FriendListItemDTO>>>;
+public record GetFriendsListQuery(string? Search, PaginationParams Pagination, OrderingParams Ordering) : IRequest<Result<PagedResult<FriendListItemDTO>>>;
 
 public class GetFriendsListHandler(
     IAppDbContext context,
@@ -17,6 +18,9 @@ public class GetFriendsListHandler(
     public async Task<Result<PagedResult<FriendListItemDTO>>> Handle(GetFriendsListQuery request, CancellationToken ct)
     {
         var friendshipsQuery = context.Friendships.Where(fs => (user.Id == fs.UserId || user.Id == fs.FriendId) && fs.IsAccepted);
+
+        if (!string.IsNullOrWhiteSpace(request.Search))
+            friendshipsQuery = friendshipsQuery.Search(user, request.Search);
 
         var totalFriendships = await friendshipsQuery.CountAsync(ct);
 

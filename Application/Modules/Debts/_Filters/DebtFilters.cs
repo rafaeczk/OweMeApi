@@ -6,6 +6,14 @@ namespace Application.Modules.Debts._Filters;
 
 public static class DebtFilters
 {
+    public static IQueryable<T> Search<T>(this IQueryable<T> query, string search)
+        where T : Debt
+    {
+        var searchTerm = search.Trim().ToLower();
+
+        return query.Where(d => d.Title.ToLower().Contains(searchTerm));
+    }
+
     public static IQueryable<T> DebtParticipantOnly<T>(this IQueryable<T> query, IUserContext user)
         where T : Debt
     {

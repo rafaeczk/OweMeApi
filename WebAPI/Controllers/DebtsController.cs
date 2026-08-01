@@ -30,6 +30,7 @@ public class DebtsController(IMediator mediator) : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<PagedResult<DebtListItemDTO>>> GetDebts(
+        [FromQuery] string? search,
         [FromQuery] int? pageNumber,
         [FromQuery] int? pageSize,
         [FromQuery] string? orderBy,
@@ -51,7 +52,7 @@ public class DebtsController(IMediator mediator) : ControllerBase
             _ => QEDebtState.Any,
         };
 
-        var result = await _mediator.Send(new GetDebtsQuery(userRoleInDebt, debtState, new(pageNumber, pageSize), new(orderBy, orderDesc)));
+        var result = await _mediator.Send(new GetDebtsQuery(search, userRoleInDebt, debtState, new(pageNumber, pageSize), new(orderBy, orderDesc)));
 
         return result.ToActionResult();
     }

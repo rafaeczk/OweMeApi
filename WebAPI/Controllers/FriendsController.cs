@@ -23,12 +23,13 @@ public class FriendsController(IMediator mediator) : ControllerBase
 
     [HttpGet("list")]
     public async Task<ActionResult<PagedResult<FriendListItemDTO>>> GetFriendsList(
+        [FromQuery] string? search,
         [FromQuery] int? pageNumber,
         [FromQuery] int? pageSize,
         [FromQuery] string? orderBy,
         [FromQuery] bool? orderDesc)
     {
-        var result = await _mediator.Send(new GetFriendsListQuery(new(pageNumber, pageSize), new(orderBy, orderDesc)));
+        var result = await _mediator.Send(new GetFriendsListQuery(search, new(pageNumber, pageSize), new(orderBy, orderDesc)));
 
         return result.ToActionResult();
     }

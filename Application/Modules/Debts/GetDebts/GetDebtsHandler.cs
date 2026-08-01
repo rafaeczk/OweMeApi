@@ -19,7 +19,7 @@ public enum QEDebtState
     Settled, Unsettled, Any
 }
 
-public record GetDebtsQuery(QEUserRoleInDebt Role, QEDebtState State, PaginationParams Pagination, OrderingParams Ordering)
+public record GetDebtsQuery(string? Search, QEUserRoleInDebt Role, QEDebtState State, PaginationParams Pagination, OrderingParams Ordering)
     : IRequest<Result<PagedResult<DebtListItemDTO>>>;
 
 public class GetDebtsHandler(
@@ -43,6 +43,9 @@ public class GetDebtsHandler(
             QEDebtState.Unsettled => debtsQuery.Where(d => !d.LedgerEvents.Any(e => e.EventType == LedgerEventTypes.DebtSettlement)),
             _ => debtsQuery,
         };
+
+        if (!string.IsNullOrWhiteSpace(request.Search))
+            debtsQuery = debtsQuery.Search(request.Search);
 
         var totalDebts = await debtsQuery.CountAsync(ct);
 
